@@ -1,0 +1,14 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# Environment variables - configure these in Netlify UI
+# GOOGLE_SERVICE_ACCOUNT_EMAIL
+# GOOGLE_PRIVATE_KEY
+# GOOGLE_SHEET_ID
