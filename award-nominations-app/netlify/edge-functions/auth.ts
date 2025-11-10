@@ -56,14 +56,25 @@ function checkGroupMembership(userGroups: string[] | undefined): boolean {
 
 export default async function(request: Request, context: Context) {
   const url = new URL(request.url);
-  console.log('Awards Auth function called for:', url.pathname);
+
+  // Skip auth for static assets and Next.js internal routes
+  if (
+    url.pathname.startsWith('/_next/') ||
+    url.pathname.startsWith('/api/') ||
+    url.pathname.match(/\.(ico|png|jpg|jpeg|svg|css|js|json|woff|woff2|ttf)$/) ||
+    url.pathname === '/favicon.ico' ||
+    url.pathname === '/robots.txt' ||
+    url.pathname === '/sitemap.xml'
+  ) {
+    return context.next();
+  }
+
   const token = context.cookies.get('umich_awards_token');
 
   // Skip auth for callback endpoint
   if (url.pathname === '/auth/callback') {
     const code = url.searchParams.get('code');
     const state = url.searchParams.get('state') || '/';
-    console.log('Callback received with code:', code);
 
     if (!code) {
       console.log('No code in callback, redirecting to access denied');
@@ -106,7 +117,6 @@ export default async function(request: Request, context: Context) {
 
     // Get OIDC endpoints from discovery URL
     const config = await getOIDCConfig();
-    console.log('Got OIDC config');
 
     // Exchange code for token
     const tokenResponse = await fetch(config.token_endpoint, {
@@ -124,7 +134,6 @@ export default async function(request: Request, context: Context) {
     });
 
     const tokenData = await tokenResponse.json();
-    console.log('Token exchange response status:', tokenResponse.status);
 
     if (!tokenData.access_token || !tokenData.id_token) {
       console.error('Token exchange failed:', tokenData);
@@ -169,8 +178,6 @@ export default async function(request: Request, context: Context) {
     let userInfo;
     try {
       userInfo = await getUserInfo(tokenData.access_token, config);
-      console.log('Got user info, checking groups...');
-      console.log('User groups (edumember_is_member_of):', userInfo.edumember_is_member_of);
     } catch (error) {
       console.error('Failed to get user info:', error);
       return new Response(`
@@ -271,7 +278,6 @@ export default async function(request: Request, context: Context) {
         issuer: "https://shibboleth.umich.edu",
         audience: OIDC_CONFIG.clientId
       });
-      console.log('Token verified, user has access');
     } catch (error) {
       console.error('Token verification failed:', error);
       return new Response(`
@@ -325,13 +331,11 @@ export default async function(request: Request, context: Context) {
 
   // Development bypass
   if (Deno.env.get('NODE_ENV') === 'development') {
-    console.log('Development mode - bypassing auth');
     return context.next();
   }
 
   // No token = redirect to login
   if (!token) {
-    console.log('No token found, redirecting to login');
     const authUrl = new URL(config.authorization_endpoint);
     authUrl.searchParams.set('client_id', OIDC_CONFIG.clientId);
     authUrl.searchParams.set('response_type', 'code');
@@ -345,14 +349,11 @@ export default async function(request: Request, context: Context) {
   // Verify existing token
   try {
     const JWKS = await getJWKS(config);
-    console.log('Verifying existing token...');
-
     await jwtVerify(token, JWKS, {
       issuer: "https://shibboleth.umich.edu",
       audience: OIDC_CONFIG.clientId,
       clockTolerance: '5 minutes'
     });
-    console.log('Token verified successfully');
     return context.next();
   } catch (error) {
     console.error('Token verification failed:', error);
