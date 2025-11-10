@@ -143,8 +143,8 @@ export async function getNominations(): Promise<Nomination[]> {
       title: 'Nominations',
       headerValues: [
         'id', 'awardId', 'candidateName', 'nominatedBy', 'nominationYear',
-        'status', 'letterStatus', 'supportLettersStatus', 'supportLettersCount',
-        'packageFiles', 'deadlineDate', 'submissionDate', 'notes', 'createdAt', 'updatedAt'
+        'status', 'letterStatus', 'letterWriterName', 'letterWriterContact', 'supportLettersStatus', 'supportLetters', 'supportLettersCount',
+        'packageFiles', 'driveFolderId', 'deadlineDate', 'submissionDate', 'notes', 'createdAt', 'updatedAt'
       ]
     });
     return [];
@@ -159,9 +159,13 @@ export async function getNominations(): Promise<Nomination[]> {
     nominationYear: parseInt(row.get('nominationYear') || new Date().getFullYear().toString()),
     status: (row.get('status') || 'pending') as Nomination['status'],
     letterStatus: (row.get('letterStatus') || 'not_started') as Nomination['letterStatus'],
+    letterWriterName: row.get('letterWriterName') || undefined,
+    letterWriterContact: row.get('letterWriterContact') || undefined,
     supportLettersStatus: (row.get('supportLettersStatus') || 'not_started') as Nomination['supportLettersStatus'],
+    supportLetters: row.get('supportLetters') ? JSON.parse(row.get('supportLetters')) : [],
     supportLettersCount: parseInt(row.get('supportLettersCount') || '0'),
     packageFiles: row.get('packageFiles') ? JSON.parse(row.get('packageFiles')) : [],
+    driveFolderId: row.get('driveFolderId') || undefined,
     deadlineDate: row.get('deadlineDate') || undefined,
     submissionDate: row.get('submissionDate') || undefined,
     notes: row.get('notes') || undefined,
@@ -180,8 +184,8 @@ export async function addNomination(nomination: Omit<Nomination, 'id' | 'created
       title: 'Nominations',
       headerValues: [
         'id', 'awardId', 'candidateName', 'nominatedBy', 'nominationYear',
-        'status', 'letterStatus', 'supportLettersStatus', 'supportLettersCount',
-        'packageFiles', 'deadlineDate', 'submissionDate', 'notes', 'createdAt', 'updatedAt'
+        'status', 'letterStatus', 'letterWriterName', 'letterWriterContact', 'supportLettersStatus', 'supportLetters', 'supportLettersCount',
+        'packageFiles', 'driveFolderId', 'deadlineDate', 'submissionDate', 'notes', 'createdAt', 'updatedAt'
       ]
     });
   }
@@ -194,9 +198,13 @@ export async function addNomination(nomination: Omit<Nomination, 'id' | 'created
     nominationYear: nomination.nominationYear.toString(),
     status: nomination.status,
     letterStatus: nomination.letterStatus,
+    letterWriterName: nomination.letterWriterName || '',
+    letterWriterContact: nomination.letterWriterContact || '',
     supportLettersStatus: nomination.supportLettersStatus,
+    supportLetters: JSON.stringify(nomination.supportLetters || []),
     supportLettersCount: (nomination.supportLettersCount || 0).toString(),
     packageFiles: JSON.stringify(nomination.packageFiles || []),
+    driveFolderId: nomination.driveFolderId || '',
     deadlineDate: nomination.deadlineDate || '',
     submissionDate: nomination.submissionDate || '',
     notes: nomination.notes || '',
@@ -224,8 +232,11 @@ export async function updateNomination(id: string, updates: Partial<Nomination>)
 
   Object.entries(updates).forEach(([key, value]) => {
     if (key !== 'id' && key !== 'createdAt' && value !== undefined) {
-      if (key === 'packageFiles') {
+      if (key === 'packageFiles' || key === 'supportLetters') {
         row.set(key, JSON.stringify(value));
+      } else if (typeof value === 'object' && value !== null) {
+        // Skip objects that aren't packageFiles or supportLetters
+        return;
       } else {
         row.set(key, value.toString());
       }

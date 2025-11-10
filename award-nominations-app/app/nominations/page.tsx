@@ -24,10 +24,14 @@ export default function NominationsPage() {
         fetch('/api/nominations'),
         fetch('/api/awards'),
       ]);
-      setNominations(await nominationsRes.json());
-      setAwards(await awardsRes.json());
+      const nominationsData = await nominationsRes.json();
+      const awardsData = await awardsRes.json();
+      setNominations(Array.isArray(nominationsData) ? nominationsData : []);
+      setAwards(Array.isArray(awardsData) ? awardsData : []);
     } catch (error) {
       console.error('Error fetching data:', error);
+      setNominations([]);
+      setAwards([]);
     } finally {
       setLoading(false);
     }

@@ -298,7 +298,7 @@ export default function AwardDetailPage({ params }: { params: Promise<{ id: stri
                     <TableHead>Candidate</TableHead>
                     <TableHead>Nominated By</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Letter</TableHead>
+                    <TableHead>Nomination</TableHead>
                     <TableHead>Support Letters</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
@@ -326,10 +326,15 @@ export default function AwardDetailPage({ params }: { params: Promise<{ id: stri
                           <Badge variant="outline">{nomination.letterStatus.replace('_', ' ')}</Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline">
-                            {nomination.supportLettersStatus.replace('_', ' ')}
-                            {nomination.supportLettersCount ? ` (${nomination.supportLettersCount})` : ''}
-                          </Badge>
+                          {(() => {
+                            const totalLetters = nomination.supportLetters?.length || 0;
+                            const receivedLetters = nomination.supportLetters?.filter(l => l.status === 'received').length || 0;
+                            return (
+                              <Badge variant="outline">
+                                {receivedLetters} of {totalLetters}
+                              </Badge>
+                            );
+                          })()}
                         </TableCell>
                         <TableCell>
                           <Link href={`/nominations/${nomination.id}`}>

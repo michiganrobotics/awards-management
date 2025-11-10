@@ -38,6 +38,22 @@ export interface Award {
   suggestedCandidate: string;
 }
 
+export interface NominationFile {
+  id: string;
+  name: string;
+  mimeType: string;
+  size?: string;
+  createdTime: string;
+  webViewLink?: string;
+  category?: 'letter' | 'support_letter' | 'cv' | 'publication' | 'other';
+}
+
+export interface SupportLetter {
+  name: string;
+  contact: string;
+  status: 'not_started' | 'requested' | 'received';
+}
+
 export interface Nomination {
   id?: string;
   awardId: string;
@@ -45,10 +61,14 @@ export interface Nomination {
   nominatedBy: string;
   nominationYear: number;
   status: 'pending' | 'submitted' | 'successful' | 'unsuccessful';
-  letterStatus: 'not_started' | 'in_progress' | 'completed';
+  letterStatus: 'not_started' | 'requested' | 'in_progress' | 'completed';
+  letterWriterName?: string;
+  letterWriterContact?: string;
+  supportLetters?: SupportLetter[];
   supportLettersStatus: 'not_started' | 'requested' | 'received';
   supportLettersCount?: number;
   packageFiles?: string[];
+  driveFolderId?: string;
   deadlineDate?: string;
   submissionDate?: string;
   notes?: string;

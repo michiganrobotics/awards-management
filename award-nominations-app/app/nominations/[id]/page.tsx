@@ -1,23 +1,26 @@
 'use client';
 
 import { use, useEffect, useState } from 'react';
-import { Award, Nomination } from '@/lib/types';
+import { Award, Nomination, NominationFile, SupportLetter } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Save, FileText, Users, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Save, FileText, Users, CheckCircle, Plus, Trash2 } from 'lucide-react';
 import Link from 'next/link';
+import { FileUpload } from '@/components/file-upload';
 
 export default function NominationDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const [nomination, setNomination] = useState<Nomination | null>(null);
   const [award, setAward] = useState<Award | null>(null);
+  const [files, setFiles] = useState<NominationFile[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     fetchData();
+    fetchFiles();
   }, [id]);
 
   const fetchData = async () => {
@@ -40,6 +43,18 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
       console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchFiles = async () => {
+    try {
+      const response = await fetch(`/api/files/${id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setFiles(data.files || []);
+      }
+    } catch (error) {
+      console.error('Error fetching files:', error);
     }
   };
 
@@ -203,7 +218,7 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
         </div>
 
         {/* Progress Tracking */}
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-3 md:grid-rows-[auto_auto]">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -213,15 +228,42 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
+                <label className="text-sm font-medium text-muted-foreground">Writer Name</label>
+                <Input
+                  value={nomination.letterWriterName || ''}
+                  onChange={(e) =>
+                    setNomination({ ...nomination, letterWriterName: e.target.value })
+                  }
+                  className="mt-1"
+                  placeholder="Enter writer's name"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Writer Contact</label>
+                <Input
+                  value={nomination.letterWriterContact || ''}
+                  onChange={(e) =>
+                    setNomination({ ...nomination, letterWriterContact: e.target.value })
+                  }
+                  className="mt-1"
+                  placeholder="Email or phone"
+                />
+              </div>
+              <div>
                 <label className="text-sm font-medium text-muted-foreground">Status</label>
                 <select
                   value={nomination.letterStatus}
                   onChange={(e) =>
-                    handleUpdate({ letterStatus: e.target.value as Nomination['letterStatus'] })
+                    handleUpdate({
+                      letterStatus: e.target.value as Nomination['letterStatus'],
+                      letterWriterName: nomination.letterWriterName,
+                      letterWriterContact: nomination.letterWriterContact
+                    })
                   }
                   className="w-full mt-1 h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
                 >
                   <option value="not_started">Not Started</option>
+                  <option value="requested">Requested</option>
                   <option value="in_progress">In Progress</option>
                   <option value="completed">Completed</option>
                 </select>
@@ -235,94 +277,146 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="md:col-span-2">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Support Letters
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Support Letters
+                </CardTitle>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const currentLetters = nomination.supportLetters || [];
+                    if (currentLetters.length < 5) {
+                      setNomination({
+                        ...nomination,
+                        supportLetters: [
+                          ...currentLetters,
+                          { name: '', contact: '', status: 'not_started' }
+                        ]
+                      });
+                    }
+                  }}
+                  disabled={(nomination.supportLetters || []).length >= 5}
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add Letter
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Status</label>
-                <select
-                  value={nomination.supportLettersStatus}
-                  onChange={(e) =>
-                    handleUpdate({
-                      supportLettersStatus: e.target.value as Nomination['supportLettersStatus'],
-                    })
-                  }
-                  className="w-full mt-1 h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
-                >
-                  <option value="not_started">Not Started</option>
-                  <option value="requested">Requested</option>
-                  <option value="received">Received</option>
-                </select>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">
-                  Number of Letters
-                </label>
-                <Input
-                  type="number"
-                  value={nomination.supportLettersCount || 0}
-                  onChange={(e) =>
-                    handleUpdate({ supportLettersCount: parseInt(e.target.value) })
-                  }
-                  className="mt-1"
-                  min="0"
-                />
-              </div>
+              {(!nomination.supportLetters || nomination.supportLetters.length === 0) ? (
+                <p className="text-sm text-muted-foreground">No support letters added yet. Click "Add Letter" to add up to 5.</p>
+              ) : (
+                nomination.supportLetters.map((letter, index) => (
+                  <div key={index} className="border rounded-lg p-4 space-y-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium">Letter {index + 1}</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const updatedLetters = nomination.supportLetters?.filter((_, i) => i !== index) || [];
+                          handleUpdate({ supportLetters: updatedLetters });
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-sm font-medium text-muted-foreground">Name</label>
+                        <Input
+                          value={letter.name}
+                          onChange={(e) => {
+                            const updatedLetters = [...(nomination.supportLetters || [])];
+                            updatedLetters[index] = { ...letter, name: e.target.value };
+                            setNomination({ ...nomination, supportLetters: updatedLetters });
+                          }}
+                          className="mt-1"
+                          placeholder="Writer's name"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-muted-foreground">Contact</label>
+                        <Input
+                          value={letter.contact}
+                          onChange={(e) => {
+                            const updatedLetters = [...(nomination.supportLetters || [])];
+                            updatedLetters[index] = { ...letter, contact: e.target.value };
+                            setNomination({ ...nomination, supportLetters: updatedLetters });
+                          }}
+                          className="mt-1"
+                          placeholder="Email or phone"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">Status</label>
+                      <select
+                        value={letter.status}
+                        onChange={(e) => {
+                          const updatedLetters = [...(nomination.supportLetters || [])];
+                          updatedLetters[index] = { ...letter, status: e.target.value as SupportLetter['status'] };
+                          setNomination({ ...nomination, supportLetters: updatedLetters });
+                        }}
+                        className="w-full mt-1 h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
+                      >
+                        <option value="not_started">Not Started</option>
+                        <option value="requested">Requested</option>
+                        <option value="received">Received</option>
+                      </select>
+                    </div>
+                  </div>
+                ))
+              )}
+              {nomination.supportLetters && nomination.supportLetters.length > 0 && (
+                <Button onClick={() => handleUpdate({ supportLetters: nomination.supportLetters })} disabled={saving} className="w-full">
+                  <Save className="mr-2 h-4 w-4" />
+                  Save Support Letters
+                </Button>
+              )}
             </CardContent>
           </Card>
 
+        </div>
+
+        {/* Package Files and Notes */}
+        <div className="grid gap-6 md:grid-cols-2">
           <Card>
             <CardHeader>
               <CardTitle>Package Files</CardTitle>
-              <CardDescription>Upload nomination documents</CardDescription>
+              <CardDescription>Upload nomination documents to Google Drive</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-sm text-muted-foreground">
-                {nomination.packageFiles && nomination.packageFiles.length > 0 ? (
-                  <ul className="space-y-1">
-                    {nomination.packageFiles.map((file, idx) => (
-                      <li key={idx} className="truncate">
-                        {file}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p>No files uploaded yet</p>
-                )}
-              </div>
-              <Button variant="outline" className="w-full mt-4">
-                Upload Files
+              <FileUpload
+                nominationId={id}
+                files={files}
+                onFilesChange={fetchFiles}
+              />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Notes</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <textarea
+                value={nomination.notes || ''}
+                onChange={(e) => setNomination({ ...nomination, notes: e.target.value })}
+                className="w-full min-h-[150px] rounded-md border border-input bg-background px-3 py-2 text-sm"
+                placeholder="Add notes about this nomination, including file links, contacts, etc."
+              />
+              <Button onClick={() => handleUpdate(nomination)} disabled={saving}>
+                <Save className="mr-2 h-4 w-4" />
+                Save Notes
               </Button>
-              <p className="text-xs text-muted-foreground mt-2">
-                File storage coming soon. For now, store files in Google Drive and add links in notes.
-              </p>
             </CardContent>
           </Card>
         </div>
-
-        {/* Notes */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Notes</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <textarea
-              value={nomination.notes || ''}
-              onChange={(e) => setNomination({ ...nomination, notes: e.target.value })}
-              className="w-full min-h-[150px] rounded-md border border-input bg-background px-3 py-2 text-sm"
-              placeholder="Add notes about this nomination, including file links, contacts, etc."
-            />
-            <Button onClick={() => handleUpdate(nomination)} disabled={saving}>
-              <Save className="mr-2 h-4 w-4" />
-              Save Notes
-            </Button>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );

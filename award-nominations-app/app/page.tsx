@@ -16,6 +16,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<FilterOptions>({});
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
   useEffect(() => {
     fetchAwards();
@@ -23,7 +24,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     filterAwards();
-  }, [awards, filters, searchTerm]);
+  }, [awards, filters, searchTerm, sortOrder]);
 
   const fetchAwards = async () => {
     try {
@@ -36,6 +37,21 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const parseDeadline = (deadlineStr: string) => {
+    if (!deadlineStr) return null;
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const date = new Date(deadlineStr);
+    if (!isNaN(date.getTime())) {
+      return date;
+    }
+    const monthDate = new Date(`${deadlineStr} 1, ${currentYear}`);
+    if (!isNaN(monthDate.getTime())) {
+      return monthDate;
+    }
+    return null;
   };
 
   const filterAwards = () => {
@@ -69,6 +85,20 @@ export default function Dashboard() {
         award.academicCareerLevel.includes(filters.academicCareerLevel!)
       );
     }
+
+    // Sort by deadline
+    filtered.sort((a, b) => {
+      const dateA = parseDeadline(a.deadlineMonth);
+      const dateB = parseDeadline(b.deadlineMonth);
+
+      if (!dateA && !dateB) return 0;
+      if (!dateA) return 1;
+      if (!dateB) return -1;
+
+      return sortOrder === 'asc'
+        ? dateA.getTime() - dateB.getTime()
+        : dateB.getTime() - dateA.getTime();
+    });
 
     setFilteredAwards(filtered);
   };
@@ -110,38 +140,6 @@ export default function Dashboard() {
               </Button>
             </Link>
           </div>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Total Awards</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{awards.length}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">High Priority</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {awards.filter((a) => a.priorityRanking?.toLowerCase().includes('high')).length}
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Upcoming Deadlines</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {awards.filter((a) => a.deadlineMonth).length}
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
         {/* Filters and Search */}
@@ -232,7 +230,12 @@ export default function Dashboard() {
                   <TableRow>
                     <TableHead>Award Name</TableHead>
                     <TableHead>Sponsor</TableHead>
-                    <TableHead>Deadline</TableHead>
+                    <TableHead
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                    >
+                      Deadline {sortOrder === 'asc' ? '↑' : '↓'}
+                    </TableHead>
                     <TableHead>Amount</TableHead>
                     <TableHead>Priority</TableHead>
                     <TableHead>Career Level</TableHead>
@@ -258,10 +261,8 @@ export default function Dashboard() {
                           </Link>
                         </TableCell>
                         <TableCell>{award.sponsor}</TableCell>
-                        <TableCell>
-                          {award.deadlineMonth && (
-                            <Badge variant="outline">{award.deadlineMonth}</Badge>
-                          )}
+                        <TableCell className="whitespace-nowrap">
+                          {award.deadlineMonth || '-'}
                         </TableCell>
                         <TableCell>
                           {award.monetaryAmount && (
