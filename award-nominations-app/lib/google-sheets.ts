@@ -43,7 +43,7 @@ export async function getAwards(): Promise<Award[]> {
     sponsor: row.get('Sponsor') || '',
     link: row.get('Link and/or more info') || '',
     division: row.get('Division') || '',
-    deadlineMonth: row.get('Deadline Month') || '',
+    deadlineMonth: row.get('Deadline') || '',
     monetaryAmount: row.get('Monetary Amount') || '',
     description: row.get('Description') || '',
     fieldOrDiscipline: row.get('Field or Discipline') || '',

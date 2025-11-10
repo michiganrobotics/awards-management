@@ -6,10 +6,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, ExternalLink, Plus, Calendar, CheckCircle2, Clock, XCircle } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Separator } from '@/components/ui/separator';
+import { ArrowLeft, ExternalLink, Plus, Calendar, CheckCircle2, Clock, XCircle, Info } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 export default function AwardDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -69,10 +76,14 @@ export default function AwardDetailPage({ params }: { params: Promise<{ id: stri
           nominatedBy: '',
           nominationYear: new Date().getFullYear(),
         });
+        toast.success('Nomination added successfully!');
         fetchAwardAndNominations();
+      } else {
+        toast.error('Failed to add nomination');
       }
     } catch (error) {
       console.error('Error adding nomination:', error);
+      toast.error('Failed to add nomination');
     }
   };
 
@@ -101,8 +112,49 @@ export default function AwardDetailPage({ params }: { params: Promise<{ id: stri
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-lg">Loading...</div>
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto p-6 space-y-6">
+          <div className="flex items-center gap-4">
+            <Skeleton className="h-10 w-10" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-10 w-96" />
+              <Skeleton className="h-5 w-64" />
+            </div>
+          </div>
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <Skeleton className="h-6 w-40" />
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Skeleton className="h-20 w-full" />
+                <Skeleton className="h-10 w-full" />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <Skeleton className="h-6 w-40" />
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+              </CardContent>
+            </Card>
+          </div>
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-6 w-48" />
+              <Skeleton className="h-4 w-80" />
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {[...Array(3)].map((_, i) => (
+                  <Skeleton key={i} className="h-16 w-full" />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -121,23 +173,31 @@ export default function AwardDetailPage({ params }: { params: Promise<{ id: stri
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-6 space-y-6">
-        {/* Header */}
-        <div className="flex items-center gap-4">
-          <Link href="/">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          </Link>
-          <div className="flex-1">
-            <h1 className="text-4xl font-bold tracking-tight">{award.awardOrPrize}</h1>
-            <p className="text-muted-foreground mt-2">{award.sponsor}</p>
+    <TooltipProvider>
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto p-6 space-y-6">
+          {/* Header */}
+          <div className="flex items-center gap-4">
+            <Link href="/">
+              <Button variant="ghost" size="icon">
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+            </Link>
+            <div className="flex-1">
+              <h1 className="text-4xl font-bold tracking-tight">{award.awardOrPrize}</h1>
+              <p className="text-muted-foreground mt-2">{award.sponsor}</p>
+            </div>
           </div>
-        </div>
 
-        {/* Award Details */}
-        <div className="grid gap-6 md:grid-cols-2">
+          {/* Tabs Layout */}
+          <Tabs defaultValue="details" className="space-y-4">
+            <TabsList>
+              <TabsTrigger value="details">Award Details</TabsTrigger>
+              <TabsTrigger value="nominations">Nominations ({nominations.length})</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="details" className="space-y-6">
+              <div className="grid gap-6 md:grid-cols-2">
           <Card>
             <CardHeader>
               <CardTitle>Award Information</CardTitle>
@@ -166,10 +226,26 @@ export default function AwardDetailPage({ params }: { params: Promise<{ id: stri
                   <div className="mt-1 font-semibold">{award.monetaryAmount || 'N/A'}</div>
                 </div>
                 <div>
-                  <div className="text-sm font-medium text-muted-foreground">Deadline Month</div>
+                  <div className="text-sm font-medium text-muted-foreground">Deadline</div>
                   <div className="mt-1">
                     {award.deadlineMonth ? (
-                      <Badge variant="outline">{award.deadlineMonth}</Badge>
+                      award.deadlineMonth.toLowerCase() === 'rolling' ? (
+                        <Badge variant="outline">Rolling</Badge>
+                      ) : (
+                        <Badge variant="outline">
+                          {(() => {
+                            try {
+                              const date = new Date(award.deadlineMonth);
+                              if (!isNaN(date.getTime())) {
+                                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                              }
+                              return award.deadlineMonth;
+                            } catch {
+                              return award.deadlineMonth;
+                            }
+                          })()}
+                        </Badge>
+                      )
                     ) : (
                       'N/A'
                     )}
@@ -222,33 +298,48 @@ export default function AwardDetailPage({ params }: { params: Promise<{ id: stri
               </div>
             </CardContent>
           </Card>
-        </div>
+              </div>
 
-        {/* Nominations Section */}
-        <Card>
+              {/* Notes Section */}
+              {award.notes && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Notes</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm">{award.notes}</p>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+
+            <TabsContent value="nominations" className="space-y-4">
+              <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle>Nominations History</CardTitle>
                 <CardDescription>Track all nominations for this award across years</CardDescription>
               </div>
-              <Button onClick={() => setShowAddNomination(!showAddNomination)}>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Nomination
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {showAddNomination && (
-              <Card className="border-2 border-dashed">
-                <CardHeader>
-                  <CardTitle>New Nomination</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid gap-4 md:grid-cols-3">
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Candidate Name</label>
+              <Dialog open={showAddNomination} onOpenChange={setShowAddNomination}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Nomination
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Add New Nomination</DialogTitle>
+                    <DialogDescription>
+                      Create a new nomination for {award.awardOrPrize}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="candidate">Candidate Name</Label>
                       <Input
+                        id="candidate"
                         value={newNomination.candidateName}
                         onChange={(e) =>
                           setNewNomination({ ...newNomination, candidateName: e.target.value })
@@ -256,9 +347,10 @@ export default function AwardDetailPage({ params }: { params: Promise<{ id: stri
                         placeholder="Enter candidate name"
                       />
                     </div>
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Nominated By</label>
+                    <div className="space-y-2">
+                      <Label htmlFor="nominator">Nominated By</Label>
                       <Input
+                        id="nominator"
                         value={newNomination.nominatedBy}
                         onChange={(e) =>
                           setNewNomination({ ...newNomination, nominatedBy: e.target.value })
@@ -266,9 +358,10 @@ export default function AwardDetailPage({ params }: { params: Promise<{ id: stri
                         placeholder="Enter nominator name"
                       />
                     </div>
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Year</label>
+                    <div className="space-y-2">
+                      <Label htmlFor="year">Nomination Year</Label>
                       <Input
+                        id="year"
                         type="number"
                         value={newNomination.nominationYear}
                         onChange={(e) =>
@@ -280,15 +373,17 @@ export default function AwardDetailPage({ params }: { params: Promise<{ id: stri
                       />
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button onClick={handleAddNomination}>Add Nomination</Button>
+                  <DialogFooter>
                     <Button variant="outline" onClick={() => setShowAddNomination(false)}>
                       Cancel
                     </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                    <Button onClick={handleAddNomination}>Add Nomination</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
 
             <div className="overflow-x-auto">
               <Table>
@@ -318,21 +413,42 @@ export default function AwardDetailPage({ params }: { params: Promise<{ id: stri
                         <TableCell>{nomination.nominatedBy}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            {getStatusIcon(nomination.status)}
+                            <Tooltip>
+                              <TooltipTrigger>
+                                {getStatusIcon(nomination.status)}
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Status: {nomination.status}</p>
+                              </TooltipContent>
+                            </Tooltip>
                             {getStatusBadge(nomination.status)}
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline">{nomination.letterStatus.replace('_', ' ')}</Badge>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <Badge variant="outline">{nomination.letterStatus.replace('_', ' ')}</Badge>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Nomination letter status</p>
+                            </TooltipContent>
+                          </Tooltip>
                         </TableCell>
                         <TableCell>
                           {(() => {
                             const totalLetters = nomination.supportLetters?.length || 0;
                             const receivedLetters = nomination.supportLetters?.filter(l => l.status === 'received').length || 0;
                             return (
-                              <Badge variant="outline">
-                                {receivedLetters} of {totalLetters}
-                              </Badge>
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <Badge variant="outline">
+                                    {receivedLetters} of {totalLetters}
+                                  </Badge>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Support letters received</p>
+                                </TooltipContent>
+                              </Tooltip>
                             );
                           })()}
                         </TableCell>
@@ -350,20 +466,11 @@ export default function AwardDetailPage({ params }: { params: Promise<{ id: stri
               </Table>
             </div>
           </CardContent>
-        </Card>
-
-        {/* Notes Section */}
-        {award.notes && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Notes</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm">{award.notes}</p>
-            </CardContent>
-          </Card>
-        )}
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
-    </div>
+    </TooltipProvider>
   );
 }

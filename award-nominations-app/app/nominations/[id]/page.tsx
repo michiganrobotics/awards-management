@@ -6,9 +6,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Save, FileText, Users, CheckCircle, Plus, Trash2 } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Separator } from '@/components/ui/separator';
+import { ArrowLeft, Save, FileText, Users, CheckCircle, Plus, Trash2, Calendar } from 'lucide-react';
 import Link from 'next/link';
 import { FileUpload } from '@/components/file-upload';
+import { toast } from 'sonner';
 
 export default function NominationDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -72,9 +79,13 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
       if (response.ok) {
         const updated = await response.json();
         setNomination(updated);
+        toast.success('Nomination updated successfully!');
+      } else {
+        toast.error('Failed to update nomination');
       }
     } catch (error) {
       console.error('Error updating nomination:', error);
+      toast.error('Failed to update nomination');
     } finally {
       setSaving(false);
     }
@@ -82,8 +93,30 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-lg">Loading...</div>
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto p-6 space-y-6">
+          <div className="flex items-center gap-4">
+            <Skeleton className="h-10 w-10" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-10 w-80" />
+              <Skeleton className="h-5 w-96" />
+            </div>
+          </div>
+          <div className="grid gap-6 md:grid-cols-2">
+            {[...Array(2)].map((_, i) => (
+              <Card key={i}>
+                <CardHeader>
+                  <Skeleton className="h-6 w-40" />
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
@@ -117,60 +150,75 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
               {award.awardOrPrize} - {nomination.nominationYear}
             </p>
           </div>
+          <Badge variant={nomination.status === 'successful' ? 'default' : 'outline'}>
+            {nomination.status}
+          </Badge>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
+        <Tabs defaultValue="details" className="space-y-6">
+          <TabsList>
+            <TabsTrigger value="details">Details</TabsTrigger>
+            <TabsTrigger value="progress">Progress</TabsTrigger>
+            <TabsTrigger value="files">Files & Notes</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="details" className="space-y-6">
+            <div className="grid gap-6 md:grid-cols-2">
           {/* Basic Information */}
           <Card>
             <CardHeader>
               <CardTitle>Nomination Details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Candidate Name</label>
+              <div className="space-y-2">
+                <Label htmlFor="candidate">Candidate Name</Label>
                 <Input
+                  id="candidate"
                   value={nomination.candidateName}
                   onChange={(e) =>
                     setNomination({ ...nomination, candidateName: e.target.value })
                   }
-                  className="mt-1"
                 />
               </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Nominated By</label>
+              <div className="space-y-2">
+                <Label htmlFor="nominator">Nominated By</Label>
                 <Input
+                  id="nominator"
                   value={nomination.nominatedBy}
                   onChange={(e) =>
                     setNomination({ ...nomination, nominatedBy: e.target.value })
                   }
-                  className="mt-1"
                 />
               </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Year</label>
+              <div className="space-y-2">
+                <Label htmlFor="year">Year</Label>
                 <Input
+                  id="year"
                   type="number"
                   value={nomination.nominationYear}
                   onChange={(e) =>
                     setNomination({ ...nomination, nominationYear: parseInt(e.target.value) })
                   }
-                  className="mt-1"
                 />
               </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Status</label>
-                <select
+              <div className="space-y-2">
+                <Label htmlFor="status">Status</Label>
+                <Select
                   value={nomination.status}
-                  onChange={(e) =>
-                    setNomination({ ...nomination, status: e.target.value as Nomination['status'] })
+                  onValueChange={(value) =>
+                    setNomination({ ...nomination, status: value as Nomination['status'] })
                   }
-                  className="w-full mt-1 h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
                 >
-                  <option value="pending">Pending</option>
-                  <option value="submitted">Submitted</option>
-                  <option value="successful">Successful</option>
-                  <option value="unsuccessful">Unsuccessful</option>
-                </select>
+                  <SelectTrigger id="status">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="submitted">Submitted</SelectItem>
+                    <SelectItem value="successful">Successful</SelectItem>
+                    <SelectItem value="unsuccessful">Unsuccessful</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <Button onClick={() => handleUpdate(nomination)} disabled={saving} className="w-full">
                 <Save className="mr-2 h-4 w-4" />
@@ -182,31 +230,32 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
           {/* Deadlines */}
           <Card>
             <CardHeader>
-              <CardTitle>Important Dates</CardTitle>
+              <div className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                <CardTitle>Important Dates</CardTitle>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Deadline Date</label>
+              <div className="space-y-2">
+                <Label htmlFor="deadline">Deadline Date</Label>
                 <Input
+                  id="deadline"
                   type="date"
                   value={nomination.deadlineDate || ''}
                   onChange={(e) =>
                     setNomination({ ...nomination, deadlineDate: e.target.value })
                   }
-                  className="mt-1"
                 />
               </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">
-                  Submission Date
-                </label>
+              <div className="space-y-2">
+                <Label htmlFor="submission">Submission Date</Label>
                 <Input
+                  id="submission"
                   type="date"
                   value={nomination.submissionDate || ''}
                   onChange={(e) =>
                     setNomination({ ...nomination, submissionDate: e.target.value })
                   }
-                  className="mt-1"
                 />
               </div>
               <Button onClick={() => handleUpdate(nomination)} disabled={saving} className="w-full">
@@ -215,7 +264,10 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
               </Button>
             </CardContent>
           </Card>
-        </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="progress" className="space-y-6">
 
         {/* Progress Tracking */}
         <div className="grid gap-6 md:grid-cols-3 md:grid-rows-[auto_auto]">
@@ -227,46 +279,50 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Writer Name</label>
+              <div className="space-y-2">
+                <Label htmlFor="writer-name">Writer Name</Label>
                 <Input
+                  id="writer-name"
                   value={nomination.letterWriterName || ''}
                   onChange={(e) =>
                     setNomination({ ...nomination, letterWriterName: e.target.value })
                   }
-                  className="mt-1"
                   placeholder="Enter writer's name"
                 />
               </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Writer Contact</label>
+              <div className="space-y-2">
+                <Label htmlFor="writer-contact">Writer Contact</Label>
                 <Input
+                  id="writer-contact"
                   value={nomination.letterWriterContact || ''}
                   onChange={(e) =>
                     setNomination({ ...nomination, letterWriterContact: e.target.value })
                   }
-                  className="mt-1"
                   placeholder="Email or phone"
                 />
               </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Status</label>
-                <select
+              <div className="space-y-2">
+                <Label htmlFor="letter-status">Status</Label>
+                <Select
                   value={nomination.letterStatus}
-                  onChange={(e) =>
+                  onValueChange={(value) =>
                     handleUpdate({
-                      letterStatus: e.target.value as Nomination['letterStatus'],
+                      letterStatus: value as Nomination['letterStatus'],
                       letterWriterName: nomination.letterWriterName,
                       letterWriterContact: nomination.letterWriterContact
                     })
                   }
-                  className="w-full mt-1 h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
                 >
-                  <option value="not_started">Not Started</option>
-                  <option value="requested">Requested</option>
-                  <option value="in_progress">In Progress</option>
-                  <option value="completed">Completed</option>
-                </select>
+                  <SelectTrigger id="letter-status">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="not_started">Not Started</SelectItem>
+                    <SelectItem value="requested">Requested</SelectItem>
+                    <SelectItem value="in_progress">In Progress</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               {nomination.letterStatus === 'completed' && (
                 <div className="flex items-center gap-2 text-green-600">
@@ -326,48 +382,52 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
                       </Button>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-sm font-medium text-muted-foreground">Name</label>
+                      <div className="space-y-2">
+                        <Label htmlFor={`support-name-${index}`}>Name</Label>
                         <Input
+                          id={`support-name-${index}`}
                           value={letter.name}
                           onChange={(e) => {
                             const updatedLetters = [...(nomination.supportLetters || [])];
                             updatedLetters[index] = { ...letter, name: e.target.value };
                             setNomination({ ...nomination, supportLetters: updatedLetters });
                           }}
-                          className="mt-1"
                           placeholder="Writer's name"
                         />
                       </div>
-                      <div>
-                        <label className="text-sm font-medium text-muted-foreground">Contact</label>
+                      <div className="space-y-2">
+                        <Label htmlFor={`support-contact-${index}`}>Contact</Label>
                         <Input
+                          id={`support-contact-${index}`}
                           value={letter.contact}
                           onChange={(e) => {
                             const updatedLetters = [...(nomination.supportLetters || [])];
                             updatedLetters[index] = { ...letter, contact: e.target.value };
                             setNomination({ ...nomination, supportLetters: updatedLetters });
                           }}
-                          className="mt-1"
                           placeholder="Email or phone"
                         />
                       </div>
                     </div>
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">Status</label>
-                      <select
+                    <div className="space-y-2">
+                      <Label htmlFor={`support-status-${index}`}>Status</Label>
+                      <Select
                         value={letter.status}
-                        onChange={(e) => {
+                        onValueChange={(value) => {
                           const updatedLetters = [...(nomination.supportLetters || [])];
-                          updatedLetters[index] = { ...letter, status: e.target.value as SupportLetter['status'] };
+                          updatedLetters[index] = { ...letter, status: value as SupportLetter['status'] };
                           setNomination({ ...nomination, supportLetters: updatedLetters });
                         }}
-                        className="w-full mt-1 h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
                       >
-                        <option value="not_started">Not Started</option>
-                        <option value="requested">Requested</option>
-                        <option value="received">Received</option>
-                      </select>
+                        <SelectTrigger id={`support-status-${index}`}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="not_started">Not Started</SelectItem>
+                          <SelectItem value="requested">Requested</SelectItem>
+                          <SelectItem value="received">Received</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                 ))
@@ -380,43 +440,45 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
               )}
             </CardContent>
           </Card>
-
         </div>
+          </TabsContent>
 
-        {/* Package Files and Notes */}
-        <div className="grid gap-6 md:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Package Files</CardTitle>
-              <CardDescription>Upload nomination documents to Google Drive</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <FileUpload
-                nominationId={id}
-                files={files}
-                onFilesChange={fetchFiles}
-              />
-            </CardContent>
-          </Card>
+          <TabsContent value="files" className="space-y-6">
+            <div className="grid gap-6 md:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Package Files</CardTitle>
+                  <CardDescription>Upload nomination documents to Google Drive</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <FileUpload
+                    nominationId={id}
+                    files={files}
+                    onFilesChange={fetchFiles}
+                  />
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Notes</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <textarea
-                value={nomination.notes || ''}
-                onChange={(e) => setNomination({ ...nomination, notes: e.target.value })}
-                className="w-full min-h-[150px] rounded-md border border-input bg-background px-3 py-2 text-sm"
-                placeholder="Add notes about this nomination, including file links, contacts, etc."
-              />
-              <Button onClick={() => handleUpdate(nomination)} disabled={saving}>
-                <Save className="mr-2 h-4 w-4" />
-                Save Notes
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Notes</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Textarea
+                    value={nomination.notes || ''}
+                    onChange={(e) => setNomination({ ...nomination, notes: e.target.value })}
+                    className="min-h-[150px]"
+                    placeholder="Add notes about this nomination, including file links, contacts, etc."
+                  />
+                  <Button onClick={() => handleUpdate(nomination)} disabled={saving}>
+                    <Save className="mr-2 h-4 w-4" />
+                    Save Notes
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
