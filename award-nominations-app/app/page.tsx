@@ -103,8 +103,14 @@ export default function Dashboard() {
     setFilteredAwards(filtered);
   };
 
-  const uniqueValues = (field: keyof Award) => {
-    return Array.from(new Set(awards.map((a) => a[field]).filter(Boolean)));
+  const uniqueValues = (field: keyof Award): string[] => {
+    return Array.from(
+      new Set(
+        awards
+          .map((a) => a[field])
+          .filter((value): value is string => Boolean(value) && typeof value === 'string')
+      )
+    );
   };
 
   if (loading) {
