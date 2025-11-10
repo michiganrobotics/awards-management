@@ -8,7 +8,7 @@
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-    --primary: 240 5.9% 10%;
+    --primary: 210 100% 30%;
     --primary-foreground: 0 0% 98%;
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
@@ -20,7 +20,7 @@
     --destructive-foreground: 0 0% 98%;
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
+    --ring: 210 100% 30%;
     --radius: 0.5rem;
   }
 
@@ -31,8 +31,8 @@
     --card-foreground: 0 0% 98%;
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
+    --primary: 210 100% 50%;
+    --primary-foreground: 0 0% 98%;
     --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
     --muted: 240 3.7% 15.9%;
@@ -43,7 +43,7 @@
     --destructive-foreground: 0 0% 98%;
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
+    --ring: 210 100% 50%;
   }
 }
 
@@ -60,5 +60,34 @@
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer components {
+  /* Fix for transparent Radix UI Select dropdown backgrounds */
+  [data-radix-popper-content-wrapper] {
+    z-index: 50;
+  }
+
+  [role="listbox"] {
+    background-color: hsl(var(--card)) !important;
+    border: 1px solid hsl(var(--border)) !important;
+  }
+
+  /* Tab styling - light mode: no border on active tab */
+  button[data-state="active"][role="tab"] {
+    border-color: transparent !important;
+  }
+
+  /* Tab styling - dark mode: subtle blue bottom border on active tab */
+  .dark button[data-state="active"][role="tab"] {
+    border: 2px solid transparent !important;
+    border-bottom: 2px solid hsl(210 100% 50% / 0.6) !important;
+  }
+
+  /* Double-check dark mode is applying */
+  html.dark button[data-state="active"][role="tab"] {
+    border: 2px solid transparent !important;
+    border-bottom: 2px solid hsl(210 100% 50% / 0.6) !important;
   }
 }
