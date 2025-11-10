@@ -78,7 +78,7 @@ async function getSharedDriveId(folderId: string): Promise<string | undefined> {
       fields: 'driveId',
       supportsAllDrives: true,
     });
-    return response.data.driveId;
+    return response.data.driveId || undefined;
   } catch (error) {
     console.error('Error getting shared drive ID:', error);
     return undefined;

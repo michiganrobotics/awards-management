@@ -7,6 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Search, Plus, Calendar, DollarSign, Filter } from 'lucide-react';
 import Link from 'next/link';
 
@@ -40,17 +43,24 @@ export default function Dashboard() {
   };
 
   const parseDeadline = (deadlineStr: string) => {
-    if (!deadlineStr) return null;
-    const now = new Date();
-    const currentYear = now.getFullYear();
+    if (!deadlineStr || deadlineStr.toLowerCase() === 'rolling') return null;
+
+    const currentYear = new Date().getFullYear();
+
+    // Handle M/D or MM/DD format (e.g., "10/1", "1/15")
+    if (deadlineStr.includes('/')) {
+      const [month, day] = deadlineStr.split('/').map(num => parseInt(num));
+      if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+        return new Date(currentYear, month - 1, day);
+      }
+    }
+
+    // Try parsing as a full date string
     const date = new Date(deadlineStr);
     if (!isNaN(date.getTime())) {
-      return date;
+      return new Date(currentYear, date.getMonth(), date.getDate());
     }
-    const monthDate = new Date(`${deadlineStr} 1, ${currentYear}`);
-    if (!isNaN(monthDate.getTime())) {
-      return monthDate;
-    }
+
     return null;
   };
 
@@ -109,8 +119,42 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-lg">Loading awards...</div>
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto p-6 space-y-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="space-y-2">
+              <Skeleton className="h-10 w-64" />
+              <Skeleton className="h-4 w-80" />
+            </div>
+            <Skeleton className="h-10 w-32" />
+          </div>
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-6 w-32" />
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Skeleton className="h-10 w-full" />
+              <div className="grid gap-4 md:grid-cols-3">
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-6 w-32" />
+              <Skeleton className="h-4 w-64" />
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {[...Array(5)].map((_, i) => (
+                  <Skeleton key={i} className="h-16 w-full" />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -126,20 +170,12 @@ export default function Dashboard() {
               Manage and track academic award nominations
             </p>
           </div>
-          <div className="flex gap-2">
-            <Link href="/nominations">
-              <Button variant="outline">
-                <Calendar className="mr-2 h-4 w-4" />
-                Nominations
-              </Button>
-            </Link>
-            <Link href="/deadlines">
-              <Button variant="outline">
-                <Calendar className="mr-2 h-4 w-4" />
-                Deadlines
-              </Button>
-            </Link>
-          </div>
+          <Link href="/nominations">
+            <Button variant="outline">
+              <Calendar className="mr-2 h-4 w-4" />
+              Nominations
+            </Button>
+          </Link>
         </div>
 
         {/* Filters and Search */}
@@ -162,54 +198,66 @@ export default function Dashboard() {
               </div>
             </div>
             <div className="grid gap-4 md:grid-cols-3">
-              <div>
-                <label className="text-sm font-medium mb-2 block">Division</label>
-                <select
-                  className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
-                  value={filters.division || ''}
-                  onChange={(e) =>
-                    setFilters({ ...filters, division: e.target.value || undefined })
+              <div className="space-y-2">
+                <Label htmlFor="division">Division</Label>
+                <Select
+                  value={filters.division || 'all'}
+                  onValueChange={(value) =>
+                    setFilters({ ...filters, division: value === 'all' ? undefined : value })
                   }
                 >
-                  <option value="">All Divisions</option>
-                  {uniqueValues('division').map((div) => (
-                    <option key={div} value={div}>
-                      {div}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger id="division">
+                    <SelectValue placeholder="All Divisions" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Divisions</SelectItem>
+                    {uniqueValues('division').map((div) => (
+                      <SelectItem key={div} value={div}>
+                        {div}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              <div>
-                <label className="text-sm font-medium mb-2 block">Deadline Month</label>
-                <select
-                  className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
-                  value={filters.deadlineMonth || ''}
-                  onChange={(e) =>
-                    setFilters({ ...filters, deadlineMonth: e.target.value || undefined })
+              <div className="space-y-2">
+                <Label htmlFor="deadline">Deadline Month</Label>
+                <Select
+                  value={filters.deadlineMonth || 'all'}
+                  onValueChange={(value) =>
+                    setFilters({ ...filters, deadlineMonth: value === 'all' ? undefined : value })
                   }
                 >
-                  <option value="">All Months</option>
-                  {uniqueValues('deadlineMonth').map((month) => (
-                    <option key={month} value={month}>
-                      {month}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger id="deadline">
+                    <SelectValue placeholder="All Months" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Months</SelectItem>
+                    {uniqueValues('deadlineMonth').map((month) => (
+                      <SelectItem key={month} value={month}>
+                        {month}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              <div>
-                <label className="text-sm font-medium mb-2 block">Career Level</label>
-                <select
-                  className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
-                  value={filters.academicCareerLevel || ''}
-                  onChange={(e) =>
-                    setFilters({ ...filters, academicCareerLevel: e.target.value || undefined })
+              <div className="space-y-2">
+                <Label htmlFor="career">Career Level</Label>
+                <Select
+                  value={filters.academicCareerLevel || 'all'}
+                  onValueChange={(value) =>
+                    setFilters({ ...filters, academicCareerLevel: value === 'all' ? undefined : value })
                   }
                 >
-                  <option value="">All Levels</option>
-                  <option value="Early Career">Early Career</option>
-                  <option value="Mid-Career">Mid-Career</option>
-                  <option value="Late Career">Late Career</option>
-                </select>
+                  <SelectTrigger id="career">
+                    <SelectValue placeholder="All Levels" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Levels</SelectItem>
+                    <SelectItem value="Early Career">Early Career</SelectItem>
+                    <SelectItem value="Mid-Career">Mid-Career</SelectItem>
+                    <SelectItem value="Late Career">Late Career</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </CardContent>
@@ -262,7 +310,12 @@ export default function Dashboard() {
                         </TableCell>
                         <TableCell>{award.sponsor}</TableCell>
                         <TableCell className="whitespace-nowrap">
-                          {award.deadlineMonth || '-'}
+                          {award.deadlineMonth ? (
+                            award.deadlineMonth.toLowerCase() === 'rolling' ? 'Rolling' : (() => {
+                              const parsed = parseDeadline(award.deadlineMonth);
+                              return parsed ? parsed.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : award.deadlineMonth;
+                            })()
+                          ) : '-'}
                         </TableCell>
                         <TableCell>
                           {award.monetaryAmount && (
