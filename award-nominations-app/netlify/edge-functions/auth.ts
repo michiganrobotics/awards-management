@@ -3,8 +3,8 @@ import { jwtVerify, createRemoteJWKSet } from "jose";
 
 const OIDC_CONFIG = {
   discoveryUrl: 'https://shibboleth.umich.edu/.well-known/openid-configuration',
-  clientId: process.env.UMICH_AWARDS_CLIENT_ID!,
-  clientSecret: process.env.UMICH_AWARDS_CLIENT_SECRET!,
+  clientId: Deno.env.get('UMICH_AWARDS_CLIENT_ID')!,
+  clientSecret: Deno.env.get('UMICH_AWARDS_CLIENT_SECRET')!,
   redirectUri: (request: Request) => {
     const url = new URL(request.url);
     return `${url.protocol}//${url.host}/auth/callback`;
@@ -324,7 +324,7 @@ export default async function(request: Request, context: Context) {
   const config = await getOIDCConfig();
 
   // Development bypass
-  if (process.env.NODE_ENV === 'development') {
+  if (Deno.env.get('NODE_ENV') === 'development') {
     console.log('Development mode - bypassing auth');
     return context.next();
   }
