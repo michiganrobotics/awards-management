@@ -9,7 +9,17 @@
   NODE_VERSION = "20"
   NPM_FLAGS = "--legacy-peer-deps"
 
+[[edge_functions]]
+  function = "auth"
+  path = "/*"
+
+[functions]
+  deno_import_map = "netlify/edge-functions/import_map.json"
+
 # Environment variables - configure these in Netlify UI
 # GOOGLE_SERVICE_ACCOUNT_EMAIL
 # GOOGLE_PRIVATE_KEY
 # GOOGLE_SHEET_ID
+# GOOGLE_DRIVE_FOLDER_ID
+# UMICH_AWARDS_CLIENT_ID
+# UMICH_AWARDS_CLIENT_SECRET
