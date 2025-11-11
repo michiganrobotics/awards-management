@@ -38,7 +38,7 @@ export async function getAwards(): Promise<Award[]> {
   const rows = await sheet.getRows();
 
   return rows.map((row) => ({
-    id: row.get('id') || row.rowNumber.toString(),
+    id: row.get('awardId') || row.get('id') || row.rowNumber.toString(),
     awardOrPrize: row.get('Award or Prize') || '',
     sponsor: row.get('Sponsor') || '',
     link: row.get('Link and/or more info') || '',
@@ -87,7 +87,11 @@ export async function addAward(award: Omit<Award, 'id'>): Promise<Award> {
   const doc = await getSpreadsheet();
   const sheet = doc.sheetsByTitle['Awards'] || doc.sheetsByIndex[0];
 
+  // Generate a unique ID for the award
+  const newId = `award-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
   const newRow = await sheet.addRow({
+    'awardId': newId,
     'Award or Prize': award.awardOrPrize,
     'Sponsor': award.sponsor,
     'Link and/or more info': award.link,
@@ -127,7 +131,7 @@ export async function addAward(award: Omit<Award, 'id'>): Promise<Award> {
   });
 
   return {
-    id: newRow.rowNumber.toString(),
+    id: newId,
     ...award,
   };
 }

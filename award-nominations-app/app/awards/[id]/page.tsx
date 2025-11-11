@@ -107,7 +107,8 @@ export default function AwardDetailPage({ params }: { params: Promise<{ id: stri
       successful: 'default',
       unsuccessful: 'secondary',
     };
-    return <Badge variant={variants[status]}>{status}</Badge>;
+    const className = status === 'successful' ? 'bg-green-600 text-white hover:bg-green-700' : '';
+    return <Badge variant={variants[status]} className={className}>{status}</Badge>;
   };
 
   if (loading) {
@@ -328,16 +329,16 @@ export default function AwardDetailPage({ params }: { params: Promise<{ id: stri
                     Add Nomination
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Add New Nomination</DialogTitle>
-                    <DialogDescription>
+                <DialogContent className="sm:max-w-[500px]">
+                  <DialogHeader className="space-y-3">
+                    <DialogTitle className="text-xl">Add New Nomination</DialogTitle>
+                    <DialogDescription className="text-base">
                       Create a new nomination for {award.awardOrPrize}
                     </DialogDescription>
                   </DialogHeader>
-                  <div className="grid gap-4 py-4">
+                  <div className="grid gap-6 py-6">
                     <div className="space-y-2">
-                      <Label htmlFor="candidate">Candidate Name</Label>
+                      <Label htmlFor="candidate" className="text-sm font-semibold">Candidate Name</Label>
                       <Input
                         id="candidate"
                         value={newNomination.candidateName}
@@ -345,10 +346,11 @@ export default function AwardDetailPage({ params }: { params: Promise<{ id: stri
                           setNewNomination({ ...newNomination, candidateName: e.target.value })
                         }
                         placeholder="Enter candidate name"
+                        className="h-10"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="nominator">Nominated By</Label>
+                      <Label htmlFor="nominator" className="text-sm font-semibold">Nominated By</Label>
                       <Input
                         id="nominator"
                         value={newNomination.nominatedBy}
@@ -356,10 +358,11 @@ export default function AwardDetailPage({ params }: { params: Promise<{ id: stri
                           setNewNomination({ ...newNomination, nominatedBy: e.target.value })
                         }
                         placeholder="Enter nominator name"
+                        className="h-10"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="year">Nomination Year</Label>
+                      <Label htmlFor="year" className="text-sm font-semibold">Nomination Year</Label>
                       <Input
                         id="year"
                         type="number"
@@ -370,10 +373,11 @@ export default function AwardDetailPage({ params }: { params: Promise<{ id: stri
                             nominationYear: parseInt(e.target.value),
                           })
                         }
+                        className="h-10"
                       />
                     </div>
                   </div>
-                  <DialogFooter>
+                  <DialogFooter className="gap-2 sm:gap-0">
                     <Button variant="outline" onClick={() => setShowAddNomination(false)}>
                       Cancel
                     </Button>

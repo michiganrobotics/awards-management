@@ -49,7 +49,8 @@ export default function NominationsPage() {
       successful: 'default',
       unsuccessful: 'secondary',
     };
-    return <Badge variant={variants[status]}>{status}</Badge>;
+    const className = status === 'successful' ? 'bg-green-600 text-white hover:bg-green-700' : '';
+    return <Badge variant={variants[status]} className={className}>{status}</Badge>;
   };
 
   const groupedByYear = nominations.reduce((acc, nom) => {
