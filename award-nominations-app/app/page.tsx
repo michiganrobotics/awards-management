@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Search, Plus, Calendar, DollarSign, Filter } from 'lucide-react';
+import { Search, Plus, Calendar, DollarSign, Filter, User } from 'lucide-react';
 import Link from 'next/link';
 
 export default function Dashboard() {
@@ -176,12 +176,20 @@ export default function Dashboard() {
               Manage and track academic award nominations
             </p>
           </div>
-          <Link href="/nominations">
-            <Button variant="outline">
-              <Calendar className="mr-2 h-4 w-4" />
-              Nominations
-            </Button>
-          </Link>
+          <div className="flex gap-2">
+            <Link href="/nominations">
+              <Button variant="outline">
+                <Calendar className="mr-2 h-4 w-4" />
+                Nominations
+              </Button>
+            </Link>
+            <Link href="/candidates">
+              <Button variant="outline">
+                <User className="mr-2 h-4 w-4" />
+                Candidates
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Filters and Search */}

@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, CheckCircle2, Clock, XCircle } from 'lucide-react';
+import { Award as AwardIcon, User, Calendar } from 'lucide-react';
 import Link from 'next/link';
 
 export default function NominationsPage() {
@@ -73,15 +73,24 @@ export default function NominationsPage() {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto p-6 space-y-6">
         {/* Header */}
-        <div className="flex items-center gap-4">
-          <Link href="/">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          </Link>
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-4xl font-bold tracking-tight">All Nominations</h1>
             <p className="text-muted-foreground mt-2">View all nominations across all awards</p>
+          </div>
+          <div className="flex gap-2">
+            <Link href="/">
+              <Button variant="outline">
+                <AwardIcon className="mr-2 h-4 w-4" />
+                Awards
+              </Button>
+            </Link>
+            <Link href="/candidates">
+              <Button variant="outline">
+                <User className="mr-2 h-4 w-4" />
+                Candidates
+              </Button>
+            </Link>
           </div>
         </div>
 
