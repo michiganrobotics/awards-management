@@ -5,10 +5,13 @@ import { withAuth } from '@/lib/api-utils';
 
 export const GET = withAuth(async (
   request: NextRequest,
-  { params }: { params: Promise<{ nominationId: string }> }
+  context?: { params: Promise<{ nominationId: string }> }
 ) => {
   try {
-    const { nominationId } = await params;
+    if (!context?.params) {
+      return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+    }
+    const { nominationId } = await context.params;
 
     // Get nomination
     const nominations = await getNominations();
@@ -38,10 +41,13 @@ export const GET = withAuth(async (
 
 export const DELETE = withAuth(async (
   request: NextRequest,
-  { params }: { params: Promise<{ nominationId: string }> }
+  context?: { params: Promise<{ nominationId: string }> }
 ) => {
   try {
-    const { nominationId } = await params;
+    if (!context?.params) {
+      return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+    }
+    const { nominationId } = await context.params;
     const { searchParams } = new URL(request.url);
     const fileId = searchParams.get('fileId');
 

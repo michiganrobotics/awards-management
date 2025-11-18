@@ -269,14 +269,6 @@ export default function AwardDetailPage({ params }: { params: Promise<{ id: stri
                 <div className="text-sm font-medium text-muted-foreground">Career Level</div>
                 <div className="mt-1">{award.academicCareerLevel || 'N/A'}</div>
               </div>
-              <div>
-                <div className="text-sm font-medium text-muted-foreground">Self Nominations</div>
-                <div className="mt-1">{award.selfNominations || 'N/A'}</div>
-              </div>
-              <div>
-                <div className="text-sm font-medium text-muted-foreground">Limited</div>
-                <div className="mt-1">{award.limited || 'No'}</div>
-              </div>
             </CardContent>
           </Card>
               </div>

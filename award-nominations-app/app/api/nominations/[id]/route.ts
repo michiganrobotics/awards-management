@@ -6,10 +6,13 @@ import { ZodError } from 'zod';
 
 export const PATCH = withAuth(async (
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  context?: { params: Promise<{ id: string }> }
 ) => {
   try {
-    const { id } = await params;
+    if (!context?.params) {
+      return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+    }
+    const { id } = await context.params;
     const body = await request.json();
 
     // Validate input
@@ -33,7 +36,7 @@ export const PATCH = withAuth(async (
       return NextResponse.json(
         {
           error: 'Validation failed',
-          details: error.errors.map((e) => ({
+          details: error.issues.map((e) => ({
             field: e.path.join('.'),
             message: e.message,
           })),

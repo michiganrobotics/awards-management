@@ -10,21 +10,11 @@ export interface Award {
   fieldOrDiscipline: string;
   callStartDate: string;
   priorityRanking: string;
-  addedFrom: string;
   typeOfImpact: string;
   awardType: string;
   academicCareerLevel: string;
-  reasonsToRemove: string;
-  limited: string;
   nominator: string;
-  nominationViability: string;
-  selfNominations: string;
-  confidential: string;
   notes: string;
-  toBeManagedBy: string;
-  mitPaper: string;
-  nominationRequestFrom: string;
-  logo: string;
   awardRotation: string;
   awardAnalysis: string;
 }
