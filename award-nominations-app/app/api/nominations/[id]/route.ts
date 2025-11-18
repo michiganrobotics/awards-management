@@ -10,9 +10,11 @@ export const PATCH = withAuth(async (
 ) => {
   try {
     if (!context?.params) {
-      return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+      console.error('PATCH: Missing context or params');
+      return NextResponse.json({ error: 'Invalid request - missing params' }, { status: 400 });
     }
     const { id } = await context.params;
+    console.log('PATCH: Updating nomination with ID:', id);
     const body = await request.json();
 
     // Validate input
