@@ -3,7 +3,7 @@ import { jwtVerify, createRemoteJWKSet, JWTPayload } from 'jose';
 
 const OIDC_CONFIG = {
   issuer: 'https://shibboleth.umich.edu',
-  jwksUri: 'https://shibboleth.umich.edu/.well-known/jwks.json',
+  jwksUri: 'https://shibboleth.umich.edu/oidc/keyset.jwk',
   clientId: process.env.UMICH_AWARDS_CLIENT_ID!,
 };
 
