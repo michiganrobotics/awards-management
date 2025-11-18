@@ -138,12 +138,27 @@ export async function createFolder(folderName: string, parentFolderId?: string):
 }
 
 /**
+ * Escape special characters for Google Drive query
+ */
+function escapeDriveQuery(value: string): string {
+  return value.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+}
+
+/**
  * List files in a folder
  */
 export async function listFiles(folderId?: string): Promise<DriveFile[]> {
   try {
+    const targetFolder = folderId || FOLDER_ID;
+    if (!targetFolder) {
+      throw new Error('No folder ID provided');
+    }
+
+    // Escape folder ID to prevent injection
+    const escapedFolderId = escapeDriveQuery(targetFolder);
+
     const response = await drive.files.list({
-      q: `'${folderId || FOLDER_ID}' in parents and trashed = false`,
+      q: `'${escapedFolderId}' in parents and trashed = false`,
       fields: 'files(id, name, mimeType, size, createdTime, webViewLink, webContentLink)',
       orderBy: 'createdTime desc',
       supportsAllDrives: true,
