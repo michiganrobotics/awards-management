@@ -119,11 +119,15 @@ export function validateNomination(data: unknown) {
 export function validateNominationUpdate(data: unknown) {
   // Preprocess data to remove empty strings and convert them to undefined
   // This prevents validation errors when frontend sends "" for optional enum fields
+  console.log('validateNominationUpdate - Raw data:', JSON.stringify(data));
+
   const cleanData = typeof data === 'object' && data !== null
     ? Object.fromEntries(
         Object.entries(data).filter(([_, v]) => v !== '')
       )
     : data;
+
+  console.log('validateNominationUpdate - Cleaned data:', JSON.stringify(cleanData));
 
   return nominationUpdateSchema.parse(cleanData);
 }
