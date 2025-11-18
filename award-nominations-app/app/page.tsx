@@ -348,16 +348,18 @@ export default function Dashboard() {
                           )}
                         </TableCell>
                         <TableCell>
-                          {award.priorityRanking && (
+                          {award.priorityRanking ? (
                             <Badge
                               variant={
                                 award.priorityRanking.toLowerCase().includes('high')
                                   ? 'default'
-                                  : 'secondary'
+                                  : 'outline'
                               }
                             >
                               {award.priorityRanking}
                             </Badge>
+                          ) : (
+                            <span className="text-sm text-muted-foreground">-</span>
                           )}
                         </TableCell>
                         <TableCell>

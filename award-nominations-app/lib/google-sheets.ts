@@ -113,6 +113,7 @@ export async function getAwards(): Promise<Award[]> {
       notes: row.get('Notes') || '',
       awardRotation: row.get('Award Rotation') || '',
       awardAnalysis: row.get('Award Analysis') || '',
+      honorificsOfficeAssistance: row.get('Honorifics Office Assistance') || '',
     };
   });
 }
@@ -148,6 +149,7 @@ export async function addAward(award: Omit<Award, 'id'>): Promise<Award> {
     'Notes': award.notes,
     'Award Rotation': award.awardRotation,
     'Award Analysis': award.awardAnalysis,
+    'Honorifics Office Assistance': award.honorificsOfficeAssistance,
   });
 
   return {

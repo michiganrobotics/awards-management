@@ -17,6 +17,7 @@ export interface Award {
   notes: string;
   awardRotation: string;
   awardAnalysis: string;
+  honorificsOfficeAssistance: string;
 }
 
 export interface NominationFile {

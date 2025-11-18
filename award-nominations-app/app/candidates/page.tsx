@@ -88,9 +88,9 @@ export default function CandidatesPage() {
       case 'successful':
         return 'default';
       case 'submitted':
-        return 'secondary';
+        return 'default';
       case 'unsuccessful':
-        return 'destructive';
+        return 'secondary';
       default:
         return 'outline';
     }
@@ -208,7 +208,10 @@ export default function CandidatesPage() {
                             >
                               {nomination.award?.awardOrPrize || 'Unknown Award'}
                             </Link>
-                            <Badge variant={getStatusColor(nomination.status)}>
+                            <Badge
+                              variant={getStatusColor(nomination.status)}
+                              className={nomination.status === 'successful' ? 'bg-green-600 text-white hover:bg-green-700' : ''}
+                            >
                               {nomination.status}
                             </Badge>
                           </div>

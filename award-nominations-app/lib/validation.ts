@@ -100,6 +100,7 @@ export const awardSchema = z.object({
   notes: z.string(),
   awardRotation: z.string(),
   awardAnalysis: z.string(),
+  honorificsOfficeAssistance: z.string(),
 });
 
 // File upload validation
