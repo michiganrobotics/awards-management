@@ -257,12 +257,37 @@ const ALLOWED_UPDATE_FIELDS = new Set([
 export async function updateNomination(id: string, updates: Partial<Nomination>): Promise<Nomination | null> {
   const doc = await getSpreadsheet();
   const sheet = doc.sheetsByTitle['Nominations'];
-  if (!sheet) return null;
+  if (!sheet) {
+    console.error('updateNomination: Nominations sheet not found');
+    return null;
+  }
 
   const rows = await sheet.getRows();
-  const row = rows.find((r) => r.get('id') === id);
+  console.log('updateNomination: Looking for ID:', id);
+  console.log('updateNomination: Available IDs:', rows.map(r => r.get('id')).slice(0, 5));
 
-  if (!row) return null;
+  // Find row by ID, or if ID starts with "nomination-row-", find by row number
+  let row = rows.find((r) => r.get('id') === id);
+  let actualId = id;
+
+  if (!row && id.startsWith('nomination-row-')) {
+    const rowNumber = parseInt(id.replace('nomination-row-', ''));
+    row = rows.find((r) => r.rowNumber === rowNumber);
+    console.log('updateNomination: Found row by row number:', rowNumber);
+
+    // If we found it by row number, set the proper UUID ID now
+    if (row) {
+      const newId = `nomination-${randomUUID()}`;
+      row.set('id', newId);
+      actualId = newId; // Track the new ID for return
+      console.log('updateNomination: Backfilling ID:', newId);
+    }
+  }
+
+  if (!row) {
+    console.error('updateNomination: Row not found for ID:', id);
+    return null;
+  }
 
   // Only update allowed fields
   Object.entries(updates).forEach(([key, value]) => {
@@ -284,5 +309,5 @@ export async function updateNomination(id: string, updates: Partial<Nomination>)
   await row.save();
 
   const nominations = await getNominations();
-  return nominations.find((n) => n.id === id) || null;
+  return nominations.find((n) => n.id === actualId) || null;
 }

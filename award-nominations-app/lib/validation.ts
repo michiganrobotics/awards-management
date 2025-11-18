@@ -117,19 +117,27 @@ export function validateNomination(data: unknown) {
 }
 
 export function validateNominationUpdate(data: unknown) {
-  // Preprocess data to remove empty strings and convert them to undefined
-  // This prevents validation errors when frontend sends "" for optional enum fields
+  // Preprocess data to remove empty strings and fix invalid enum values
   console.log('validateNominationUpdate - Raw data:', JSON.stringify(data));
 
-  const cleanData = typeof data === 'object' && data !== null
-    ? Object.fromEntries(
-        Object.entries(data).filter(([_, v]) => v !== '')
-      )
-    : data;
+  if (typeof data === 'object' && data !== null) {
+    const entries = Object.entries(data);
+    const cleanedEntries = entries
+      .filter(([_, v]) => v !== '') // Remove empty strings
+      .map(([k, v]) => {
+        // Fix letterStatus if it has an invalid value - map "pending" to "not_started"
+        if (k === 'letterStatus' && v === 'pending') {
+          return [k, 'not_started'];
+        }
+        return [k, v];
+      });
 
-  console.log('validateNominationUpdate - Cleaned data:', JSON.stringify(cleanData));
+    const cleanData = Object.fromEntries(cleanedEntries);
+    console.log('validateNominationUpdate - Cleaned data:', JSON.stringify(cleanData));
+    return nominationUpdateSchema.parse(cleanData);
+  }
 
-  return nominationUpdateSchema.parse(cleanData);
+  return nominationUpdateSchema.parse(data);
 }
 
 export function validateCreateNomination(data: unknown) {

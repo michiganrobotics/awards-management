@@ -210,7 +210,17 @@ export default function CandidatesPage() {
                             </Link>
                             <Badge
                               variant={getStatusColor(nomination.status)}
-                              className={nomination.status === 'successful' ? 'bg-green-600 text-white hover:bg-green-700' : ''}
+                              className={
+                                nomination.status === 'successful'
+                                  ? 'bg-green-600 text-white hover:bg-green-700'
+                                  : nomination.status === 'pending'
+                                  ? 'bg-orange-100 text-orange-800 border-orange-300 hover:bg-orange-200'
+                                  : nomination.status === 'unsuccessful'
+                                  ? 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
+                                  : nomination.status === 'submitted'
+                                  ? 'bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200'
+                                  : ''
+                              }
                             >
                               {nomination.status}
                             </Badge>

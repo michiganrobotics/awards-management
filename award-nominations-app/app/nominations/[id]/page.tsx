@@ -68,6 +68,12 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
   const handleUpdate = async (updates: Partial<Nomination>) => {
     if (!nomination) return;
 
+    // Auto-complete letter and support letter statuses when nomination is finalized
+    if (updates.status && ['successful', 'unsuccessful', 'submitted'].includes(updates.status)) {
+      updates.letterStatus = 'completed';
+      updates.supportLettersStatus = 'received';
+    }
+
     setSaving(true);
     try {
       const response = await fetch(`/api/nominations/${id}`, {
