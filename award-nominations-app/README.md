@@ -81,42 +81,24 @@ npm install
 
 1. Create a new Google Sheet or use an existing one
 2. Create a sheet named "Awards" with the following columns (or import your existing CSV):
+   - awardId
    - Award or Prize
    - Sponsor
    - Link and/or more info
    - Division
-   - Deadline Month
+   - Deadline
    - Monetary Amount
    - Description
    - Field or Discipline
-   - Call for Noms
+   - Call Start Date
    - Priority Ranking
-   - Added from
    - Type of Impact
    - Award Type
    - Academic Career Level
-   - Reason(s) to remove or not promote
-   - Limited
    - Nominator
-   - Nomination Viability
-   - Self nominations
-   - Confidential
-   - Currently managed by
    - Notes
-   - To be managed by
-   - MIT paper
-   - Nomination request from?
-   - Logo
-   - Nominations
    - Award Rotation
    - Award Analysis
-   - Heritage Award?
-   - Faculty
-   - Faculty 2
-   - Faculty 3
-   - Candidate Suggestions 2024
-   - Candidate Suggestions
-   - Suggested Candidate (from Candidate Suggestions)
 
 3. Share the spreadsheet with your service account email:
    - Click "Share" in your Google Sheet
@@ -247,7 +229,6 @@ The Awards sheet stores comprehensive information about each award with the foll
 - `Sponsor` - Organization or entity sponsoring the award
 - `Link and/or more info` - URL to award information
 - `Description` - Detailed description of the award
-- `Logo` - Award logo or image URL
 
 **Eligibility & Requirements:**
 - `Division` - Academic division or department
@@ -255,9 +236,6 @@ The Awards sheet stores comprehensive information about each award with the foll
 - `Academic Career Level` - Early Career, Mid-Career, Late Career
 - `Award Type` - Category or type of award
 - `Type of Impact` - Expected impact or focus area
-- `Limited` - Whether award has limited slots
-- `Self nominations` - Whether self-nominations are allowed
-- `Confidential` - Confidentiality requirements
 
 **Deadlines & Planning:**
 - `Deadline` - Submission deadline (supports dates like "10/15" or text like "Rolling")
@@ -266,25 +244,10 @@ The Awards sheet stores comprehensive information about each award with the foll
 
 **Tracking & Management:**
 - `Priority Ranking` - Internal priority level
-- `Nomination Viability` - Assessment of nomination feasibility
 - `Nominator` - Who can nominate
-- `Currently managed by` - Current manager
-- `To be managed by` - Planned manager
 - `Notes` - Additional notes and comments
-
-**Analysis & History:**
-- `Award Analysis` - Strategic analysis
 - `Monetary Amount` - Prize amount
-- `Heritage Award?` - Historical significance flag
-- `Faculty` / `Faculty 2` / `Faculty 3` - Faculty member tracking
-- `Candidate Suggestions` / `Candidate Suggestions 2024` - Potential nominees
-- `Suggested Candidate (from Candidate Suggestions)` - Selected suggestions
-
-**Administrative:**
-- `Reason(s) to remove or not promote` - Decision tracking
-- `Added from` - Source of award information
-- `MIT paper` - Related documentation
-- `Nomination request from?` - Request tracking
+- `Award Analysis` - Strategic analysis
 
 ### Nominations Sheet
 The Nominations sheet is automatically created when you add your first nomination. Each nomination includes:
@@ -340,7 +303,13 @@ interface Award {
   fieldOrDiscipline: string;
   callStartDate: string;
   priorityRanking: string;
-  // ... and more fields
+  typeOfImpact: string;
+  awardType: string;
+  academicCareerLevel: string;
+  nominator: string;
+  notes: string;
+  awardRotation: string;
+  awardAnalysis: string;
 }
 
 interface Nomination {
