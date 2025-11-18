@@ -1,20 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { uploadFile, createFolder } from '@/lib/google-drive';
 import { getNominations, updateNomination, getAwards } from '@/lib/google-sheets';
+import { withAuth } from '@/lib/api-utils';
+import { VALIDATION_LIMITS, FILE_CATEGORY } from '@/lib/constants';
 
-export async function POST(request: NextRequest) {
+export const POST = withAuth(async (request: NextRequest) => {
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const nominationId = formData.get('nominationId') as string;
     const category = formData.get('category') as string;
 
+    // Validation
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
     if (!nominationId) {
       return NextResponse.json({ error: 'No nomination ID provided' }, { status: 400 });
+    }
+
+    // Validate file size
+    if (file.size > VALIDATION_LIMITS.MAX_FILE_SIZE) {
+      return NextResponse.json(
+        { error: `File size exceeds maximum of ${VALIDATION_LIMITS.MAX_FILE_SIZE / 1024 / 1024}MB` },
+        { status: 400 }
+      );
+    }
+
+    // Validate category
+    const validCategories = Object.values(FILE_CATEGORY);
+    if (category && !validCategories.includes(category as any)) {
+      return NextResponse.json(
+        { error: 'Invalid file category' },
+        { status: 400 }
+      );
     }
 
     // Convert file to buffer
@@ -47,9 +67,12 @@ export async function POST(request: NextRequest) {
       await updateNomination(nominationId, { driveFolderId: folderId });
     }
 
+    // Sanitize filename to prevent path traversal
+    const sanitizedName = file.name.replace(/[/\\]/g, '_');
+
     // Append category to filename
-    const fileExtension = file.name.includes('.') ? file.name.substring(file.name.lastIndexOf('.')) : '';
-    const baseName = file.name.includes('.') ? file.name.substring(0, file.name.lastIndexOf('.')) : file.name;
+    const fileExtension = sanitizedName.includes('.') ? sanitizedName.substring(sanitizedName.lastIndexOf('.')) : '';
+    const baseName = sanitizedName.includes('.') ? sanitizedName.substring(0, sanitizedName.lastIndexOf('.')) : sanitizedName;
     const categoryTag = category ? `[${category}]` : '';
     const newFileName = `${baseName}${categoryTag}${fileExtension}`;
 
@@ -77,4 +100,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

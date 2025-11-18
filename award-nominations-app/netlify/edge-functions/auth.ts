@@ -54,6 +54,35 @@ function checkGroupMembership(userGroups: string[] | undefined): boolean {
   return REQUIRED_GROUPS.some(requiredGroup => userGroups.includes(requiredGroup));
 }
 
+/**
+ * Validate redirect URL to prevent open redirect attacks
+ * Only allows relative paths or same-origin URLs
+ */
+function validateRedirectUrl(urlString: string, baseUrl: URL): string {
+  try {
+    // If it's a relative path starting with /, it's safe
+    if (urlString.startsWith('/') && !urlString.startsWith('//')) {
+      return urlString;
+    }
+
+    // Try to parse as URL - if it fails, return home
+    const parsed = new URL(urlString, baseUrl);
+
+    // Only allow same-origin redirects
+    if (parsed.origin === baseUrl.origin) {
+      return parsed.pathname + parsed.search + parsed.hash;
+    }
+
+    // Default to home if URL is not safe
+    console.warn('Blocked potential open redirect to:', urlString);
+    return '/';
+  } catch {
+    // If URL parsing fails, return home page
+    console.warn('Invalid redirect URL:', urlString);
+    return '/';
+  }
+}
+
 export default async function(request: Request, context: Context) {
   const url = new URL(request.url);
 
@@ -74,7 +103,9 @@ export default async function(request: Request, context: Context) {
   // Skip auth for callback endpoint
   if (url.pathname === '/auth/callback') {
     const code = url.searchParams.get('code');
-    const state = url.searchParams.get('state') || '/';
+    const rawState = url.searchParams.get('state') || '/';
+    // Validate state parameter to prevent open redirects
+    const state = validateRedirectUrl(rawState, url);
 
     if (!code) {
       console.log('No code in callback, redirecting to access denied');
@@ -341,7 +372,8 @@ export default async function(request: Request, context: Context) {
     authUrl.searchParams.set('response_type', 'code');
     authUrl.searchParams.set('scope', OIDC_CONFIG.scope);
     authUrl.searchParams.set('redirect_uri', OIDC_CONFIG.redirectUri(request));
-    authUrl.searchParams.set('state', url.pathname);
+    // Validate state to ensure it's a safe relative path
+    authUrl.searchParams.set('state', validateRedirectUrl(url.pathname, url));
 
     return Response.redirect(authUrl.toString());
   }
@@ -364,7 +396,8 @@ export default async function(request: Request, context: Context) {
     authUrl.searchParams.set('response_type', 'code');
     authUrl.searchParams.set('scope', OIDC_CONFIG.scope);
     authUrl.searchParams.set('redirect_uri', OIDC_CONFIG.redirectUri(request));
-    authUrl.searchParams.set('state', url.pathname);
+    // Validate state to ensure it's a safe relative path
+    authUrl.searchParams.set('state', validateRedirectUrl(url.pathname, url));
 
     return new Response(null, {
       status: 302,

@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { listFiles, deleteFile } from '@/lib/google-drive';
 import { getNominations } from '@/lib/google-sheets';
+import { withAuth } from '@/lib/api-utils';
 
-export async function GET(
+export const GET = withAuth(async (
   request: NextRequest,
   { params }: { params: Promise<{ nominationId: string }> }
-) {
+) => {
   try {
     const { nominationId } = await params;
 
@@ -33,12 +34,12 @@ export async function GET(
       { status: 500 }
     );
   }
-}
+});
 
-export async function DELETE(
+export const DELETE = withAuth(async (
   request: NextRequest,
   { params }: { params: Promise<{ nominationId: string }> }
-) {
+) => {
   try {
     const { nominationId } = await params;
     const { searchParams } = new URL(request.url);
@@ -62,4 +63,4 @@ export async function DELETE(
       { status: 500 }
     );
   }
-}
+});
