@@ -43,15 +43,30 @@ export default function Dashboard() {
   };
 
   const parseDeadline = (deadlineStr: string) => {
-    if (!deadlineStr || deadlineStr.toLowerCase() === 'rolling') return null;
+    if (!deadlineStr) return null;
 
-    const currentYear = new Date().getFullYear();
+    const lowerDeadline = deadlineStr.toLowerCase();
+
+    // Handle text values like 'rolling', 'floating', 'ongoing', etc.
+    if (lowerDeadline === 'rolling' || lowerDeadline === 'floating' || lowerDeadline === 'ongoing') {
+      return null;
+    }
+
+    const today = new Date();
+    const currentYear = today.getFullYear();
 
     // Handle M/D or MM/DD format (e.g., "10/1", "1/15")
     if (deadlineStr.includes('/')) {
       const [month, day] = deadlineStr.split('/').map(num => parseInt(num));
       if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
-        return new Date(currentYear, month - 1, day);
+        let deadlineDate = new Date(currentYear, month - 1, day);
+
+        // If deadline has passed this year, use next year
+        if (deadlineDate < today) {
+          deadlineDate = new Date(currentYear + 1, month - 1, day);
+        }
+
+        return deadlineDate;
       }
     }
 
@@ -61,6 +76,7 @@ export default function Dashboard() {
       return new Date(currentYear, date.getMonth(), date.getDate());
     }
 
+    // If we can't parse it, return null (treats it like rolling/floating)
     return null;
   };
 
@@ -324,12 +340,7 @@ export default function Dashboard() {
                         </TableCell>
                         <TableCell>{award.sponsor}</TableCell>
                         <TableCell className="whitespace-nowrap">
-                          {award.deadlineMonth ? (
-                            award.deadlineMonth.toLowerCase() === 'rolling' ? 'Rolling' : (() => {
-                              const parsed = parseDeadline(award.deadlineMonth);
-                              return parsed ? parsed.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : award.deadlineMonth;
-                            })()
-                          ) : '-'}
+                          {award.deadlineMonth || '-'}
                         </TableCell>
                         <TableCell>
                           {award.monetaryAmount && (

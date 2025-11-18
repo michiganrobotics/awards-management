@@ -8,7 +8,7 @@ export interface Award {
   monetaryAmount: string;
   description: string;
   fieldOrDiscipline: string;
-  callForNoms: string;
+  callStartDate: string;
   priorityRanking: string;
   addedFrom: string;
   typeOfImpact: string;
@@ -20,22 +20,13 @@ export interface Award {
   nominationViability: string;
   selfNominations: string;
   confidential: string;
-  currentlyManagedBy: string;
   notes: string;
   toBeManagedBy: string;
   mitPaper: string;
   nominationRequestFrom: string;
   logo: string;
-  nominations: string;
   awardRotation: string;
   awardAnalysis: string;
-  heritageAward: string;
-  faculty: string;
-  faculty2: string;
-  faculty3: string;
-  candidateSuggestions2024: string;
-  candidateSuggestions: string;
-  suggestedCandidate: string;
 }
 
 export interface NominationFile {

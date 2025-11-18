@@ -147,7 +147,7 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
           <div className="flex-1">
             <h1 className="text-4xl font-bold tracking-tight">{nomination.candidateName}</h1>
             <p className="text-muted-foreground mt-2">
-              {award.awardOrPrize} - {nomination.nominationYear}
+              {award.sponsor} - {award.awardOrPrize} - {nomination.nominationYear}
             </p>
           </div>
           <Badge variant={nomination.status === 'successful' ? 'default' : 'outline'}>

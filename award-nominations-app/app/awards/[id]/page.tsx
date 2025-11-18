@@ -230,23 +230,7 @@ export default function AwardDetailPage({ params }: { params: Promise<{ id: stri
                   <div className="text-sm font-medium text-muted-foreground">Deadline</div>
                   <div className="mt-1">
                     {award.deadlineMonth ? (
-                      award.deadlineMonth.toLowerCase() === 'rolling' ? (
-                        <Badge variant="outline">Rolling</Badge>
-                      ) : (
-                        <Badge variant="outline">
-                          {(() => {
-                            try {
-                              const date = new Date(award.deadlineMonth);
-                              if (!isNaN(date.getTime())) {
-                                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                              }
-                              return award.deadlineMonth;
-                            } catch {
-                              return award.deadlineMonth;
-                            }
-                          })()}
-                        </Badge>
-                      )
+                      <Badge variant="outline">{award.deadlineMonth}</Badge>
                     ) : (
                       'N/A'
                     )}
@@ -292,10 +276,6 @@ export default function AwardDetailPage({ params }: { params: Promise<{ id: stri
               <div>
                 <div className="text-sm font-medium text-muted-foreground">Limited</div>
                 <div className="mt-1">{award.limited || 'No'}</div>
-              </div>
-              <div>
-                <div className="text-sm font-medium text-muted-foreground">Currently Managed By</div>
-                <div className="mt-1">{award.currentlyManagedBy || 'Unassigned'}</div>
               </div>
             </CardContent>
           </Card>
