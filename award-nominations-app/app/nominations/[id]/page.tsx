@@ -1,6 +1,7 @@
 'use client';
 
 import { use, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Award, Nomination, NominationFile, SupportLetter } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,7 @@ import { toast } from 'sonner';
 
 export default function NominationDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const router = useRouter();
   const [nomination, setNomination] = useState<Nomination | null>(null);
   const [award, setAward] = useState<Award | null>(null);
   const [files, setFiles] = useState<NominationFile[]>([]);
@@ -145,15 +147,16 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
       <div className="container mx-auto p-6 space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4">
-          <Link href={`/awards/${award.id}`}>
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          </Link>
+          <Button variant="ghost" size="icon" onClick={() => router.back()}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
           <div className="flex-1">
             <h1 className="text-4xl font-bold tracking-tight">{nomination.candidateName}</h1>
             <p className="text-muted-foreground mt-2">
-              {award.sponsor} - {award.awardOrPrize} - {nomination.nominationYear}
+              <Link href={`/awards/${award.id}`} className="hover:underline">
+                {award.sponsor} - {award.awardOrPrize}
+              </Link>
+              {' '}- {nomination.nominationYear}
             </p>
           </div>
           <Badge variant={nomination.status === 'successful' ? 'default' : 'outline'}>
