@@ -188,28 +188,30 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
               </Link>
               {' '}- {nomination.nominationYear}
             </p>
+            <div className="mt-2">
+              {(() => {
+                const variants: Record<Nomination['status'], 'default' | 'secondary' | 'destructive' | 'outline'> = {
+                  pending: 'outline',
+                  submitted: 'default',
+                  successful: 'default',
+                  unsuccessful: 'outline',
+                };
+
+                let className = '';
+                if (nomination.status === 'successful') {
+                  className = 'bg-green-600 text-white hover:bg-green-700';
+                } else if (nomination.status === 'pending') {
+                  className = 'bg-orange-100 text-orange-800 border-orange-300 hover:bg-orange-200';
+                } else if (nomination.status === 'unsuccessful') {
+                  className = 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200';
+                } else if (nomination.status === 'submitted') {
+                  className = 'bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200';
+                }
+
+                return <Badge variant={variants[nomination.status]} className={className}>{nomination.status}</Badge>;
+              })()}
+            </div>
           </div>
-          {(() => {
-            const variants: Record<Nomination['status'], 'default' | 'secondary' | 'destructive' | 'outline'> = {
-              pending: 'outline',
-              submitted: 'default',
-              successful: 'default',
-              unsuccessful: 'outline',
-            };
-
-            let className = '';
-            if (nomination.status === 'successful') {
-              className = 'bg-green-600 text-white hover:bg-green-700';
-            } else if (nomination.status === 'pending') {
-              className = 'bg-orange-100 text-orange-800 border-orange-300 hover:bg-orange-200';
-            } else if (nomination.status === 'unsuccessful') {
-              className = 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200';
-            } else if (nomination.status === 'submitted') {
-              className = 'bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200';
-            }
-
-            return <Badge variant={variants[nomination.status]} className={className}>{nomination.status}</Badge>;
-          })()}
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="destructive" size="sm" className="cursor-pointer">
