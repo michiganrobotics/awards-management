@@ -293,7 +293,7 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
                   </SelectContent>
                 </Select>
               </div>
-              <Button onClick={() => handleUpdate(nomination)} disabled={saving} className="w-full">
+              <Button onClick={() => handleUpdate(nomination)} disabled={saving} className="w-full cursor-pointer">
                 <Save className="mr-2 h-4 w-4" />
                 {saving ? 'Saving...' : 'Save Changes'}
               </Button>
@@ -331,7 +331,7 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
                   }
                 />
               </div>
-              <Button onClick={() => handleUpdate(nomination)} disabled={saving} className="w-full">
+              <Button onClick={() => handleUpdate(nomination)} disabled={saving} className="w-full cursor-pointer">
                 <Save className="mr-2 h-4 w-4" />
                 Update Dates
               </Button>
@@ -426,6 +426,7 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
                     }
                   }}
                   disabled={(nomination.supportLetters || []).length >= 5}
+                  className="cursor-pointer"
                 >
                   <Plus className="h-4 w-4 mr-1" />
                   Add Letter
@@ -447,6 +448,7 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
                           const updatedLetters = nomination.supportLetters?.filter((_, i) => i !== index) || [];
                           handleUpdate({ supportLetters: updatedLetters });
                         }}
+                        className="cursor-pointer"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -503,7 +505,7 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
                 ))
               )}
               {nomination.supportLetters && nomination.supportLetters.length > 0 && (
-                <Button onClick={() => handleUpdate({ supportLetters: nomination.supportLetters })} disabled={saving} className="w-full">
+                <Button onClick={() => handleUpdate({ supportLetters: nomination.supportLetters })} disabled={saving} className="w-full cursor-pointer">
                   <Save className="mr-2 h-4 w-4" />
                   Save Support Letters
                 </Button>
@@ -539,7 +541,7 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
                     className="min-h-[150px]"
                     placeholder="Add notes about this nomination, including file links, contacts, etc."
                   />
-                  <Button onClick={() => handleUpdate(nomination)} disabled={saving}>
+                  <Button onClick={() => handleUpdate(nomination)} disabled={saving} className="cursor-pointer">
                     <Save className="mr-2 h-4 w-4" />
                     Save Notes
                   </Button>

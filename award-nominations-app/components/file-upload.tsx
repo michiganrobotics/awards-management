@@ -118,7 +118,7 @@ export function FileUpload({ nominationId, files, onFilesChange }: FileUploadPro
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
+          className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm cursor-pointer"
         >
           <option value="letter">Nomination Letter</option>
           <option value="support_letter">Support Letter</option>
@@ -136,7 +136,7 @@ export function FileUpload({ nominationId, files, onFilesChange }: FileUploadPro
           />
           <Button
             variant="outline"
-            className="w-full"
+            className="w-full cursor-pointer"
             disabled={uploading}
             onClick={(e) => {
               e.preventDefault();
@@ -190,6 +190,7 @@ export function FileUpload({ nominationId, files, onFilesChange }: FileUploadPro
                         variant="ghost"
                         size="sm"
                         onClick={() => window.open(file.webViewLink, '_blank')}
+                        className="cursor-pointer"
                       >
                         <ExternalLink className="h-4 w-4" />
                       </Button>
@@ -198,6 +199,7 @@ export function FileUpload({ nominationId, files, onFilesChange }: FileUploadPro
                       variant="ghost"
                       size="sm"
                       onClick={() => handleDelete(file.id)}
+                      className="cursor-pointer"
                     >
                       <X className="h-4 w-4" />
                     </Button>
