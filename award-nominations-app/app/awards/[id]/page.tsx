@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
@@ -190,15 +189,9 @@ export default function AwardDetailPage({ params }: { params: Promise<{ id: stri
             </div>
           </div>
 
-          {/* Tabs Layout */}
-          <Tabs defaultValue="details" className="space-y-4">
-            <TabsList>
-              <TabsTrigger value="details">Award Details</TabsTrigger>
-              <TabsTrigger value="nominations">Nominations ({nominations.length})</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="details" className="space-y-6">
-              <div className="grid gap-6 md:grid-cols-2">
+          {/* Award Details */}
+          <div className="space-y-6">
+            <div className="grid gap-6 md:grid-cols-2">
           <Card>
             <CardHeader>
               <CardTitle>Award Information</CardTitle>
@@ -273,21 +266,20 @@ export default function AwardDetailPage({ params }: { params: Promise<{ id: stri
           </Card>
               </div>
 
-              {/* Notes Section */}
-              {award.notes && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Notes</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm">{award.notes}</p>
-                  </CardContent>
-                </Card>
-              )}
-            </TabsContent>
-
-            <TabsContent value="nominations" className="space-y-4">
+            {/* Notes Section */}
+            {award.notes && (
               <Card>
+                <CardHeader>
+                  <CardTitle>Notes</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm">{award.notes}</p>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Nominations Section */}
+            <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
@@ -442,9 +434,8 @@ export default function AwardDetailPage({ params }: { params: Promise<{ id: stri
               </Table>
             </div>
           </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+            </Card>
+          </div>
         </div>
       </div>
     </TooltipProvider>

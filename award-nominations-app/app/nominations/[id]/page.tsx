@@ -10,7 +10,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, Save, FileText, Users, CheckCircle, Plus, Trash2, Calendar } from 'lucide-react';
@@ -164,15 +163,9 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
           </Badge>
         </div>
 
-        <Tabs defaultValue="details" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="details">Details</TabsTrigger>
-            <TabsTrigger value="progress">Progress</TabsTrigger>
-            <TabsTrigger value="files">Files & Notes</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="details" className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-2">
+        {/* Details Section */}
+        <div className="space-y-6">
+          <div className="grid gap-6 md:grid-cols-2">
           {/* Basic Information */}
           <Card>
             <CardHeader>
@@ -273,13 +266,10 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
               </Button>
             </CardContent>
           </Card>
-            </div>
-          </TabsContent>
+          </div>
 
-          <TabsContent value="progress" className="space-y-6">
-
-        {/* Progress Tracking */}
-        <div className="grid gap-6 md:grid-cols-3 md:grid-rows-[auto_auto]">
+          {/* Progress Tracking */}
+          <div className="grid gap-6 md:grid-cols-3 md:grid-rows-[auto_auto]">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -449,11 +439,10 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
               )}
             </CardContent>
           </Card>
-        </div>
-          </TabsContent>
+          </div>
 
-          <TabsContent value="files" className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-2">
+          {/* Files & Notes Section */}
+          <div className="grid gap-6 md:grid-cols-2">
               <Card>
                 <CardHeader>
                   <CardTitle>Package Files</CardTitle>
@@ -485,9 +474,8 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
                   </Button>
                 </CardContent>
               </Card>
-            </div>
-          </TabsContent>
-        </Tabs>
+          </div>
+        </div>
       </div>
     </div>
   );
