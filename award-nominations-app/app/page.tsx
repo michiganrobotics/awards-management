@@ -193,13 +193,13 @@ export default function Dashboard() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Link href="/nominations">
+            <Link href="/nominations" className="cursor-pointer">
               <Button variant="outline">
                 <Calendar className="mr-2 h-4 w-4" />
                 Nominations
               </Button>
             </Link>
-            <Link href="/candidates">
+            <Link href="/candidates" className="cursor-pointer">
               <Button variant="outline">
                 <User className="mr-2 h-4 w-4" />
                 Candidates
@@ -333,7 +333,7 @@ export default function Dashboard() {
                         <TableCell className="font-medium">
                           <Link
                             href={`/awards/${award.id}`}
-                            className="hover:underline text-primary"
+                            className="hover:underline text-primary cursor-pointer"
                           >
                             {award.awardOrPrize}
                           </Link>
@@ -368,7 +368,7 @@ export default function Dashboard() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Link href={`/awards/${award.id}`}>
+                          <Link href={`/awards/${award.id}`} className="cursor-pointer">
                             <Button variant="ghost" size="sm">
                               View
                             </Button>

@@ -176,7 +176,7 @@ export default function AwardDetailPage({ params }: { params: Promise<{ id: stri
         <div className="container mx-auto p-6 space-y-6">
           {/* Header */}
           <div className="flex items-center gap-4">
-            <Link href="/">
+            <Link href="/" className="cursor-pointer">
               <Button variant="ghost" size="icon">
                 <ArrowLeft className="h-4 w-4" />
               </Button>
@@ -206,7 +206,7 @@ export default function AwardDetailPage({ params }: { params: Promise<{ id: stri
                     href={award.link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-1 flex items-center gap-1 text-primary hover:underline"
+                    className="mt-1 flex items-center gap-1 text-primary hover:underline cursor-pointer"
                   >
                     View Award Details <ExternalLink className="h-3 w-3" />
                   </a>
@@ -286,7 +286,7 @@ export default function AwardDetailPage({ params }: { params: Promise<{ id: stri
               </div>
               <Dialog open={showAddNomination} onOpenChange={setShowAddNomination}>
                 <DialogTrigger asChild>
-                  <Button>
+                  <Button className="cursor-pointer">
                     <Plus className="mr-2 h-4 w-4" />
                     Add Nomination
                   </Button>
@@ -411,7 +411,7 @@ export default function AwardDetailPage({ params }: { params: Promise<{ id: stri
                           })()}
                         </TableCell>
                         <TableCell>
-                          <Link href={`/nominations/${nomination.id}`}>
+                          <Link href={`/nominations/${nomination.id}`} className="cursor-pointer">
                             <Button variant="ghost" size="sm">
                               Manage
                             </Button>

@@ -134,13 +134,13 @@ export default function CandidatesPage() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Link href="/">
+            <Link href="/" className="cursor-pointer">
               <Button variant="outline">
                 <AwardIcon className="mr-2 h-4 w-4" />
                 Awards
               </Button>
             </Link>
-            <Link href="/nominations">
+            <Link href="/nominations" className="cursor-pointer">
               <Button variant="outline">
                 <Calendar className="mr-2 h-4 w-4" />
                 Nominations
@@ -204,7 +204,7 @@ export default function CandidatesPage() {
                           <div className="flex items-center gap-2">
                             <Link
                               href={`/nominations/${nomination.id}`}
-                              className="font-medium hover:underline text-primary"
+                              className="font-medium hover:underline text-primary cursor-pointer"
                             >
                               {nomination.award?.awardOrPrize || 'Unknown Award'}
                             </Link>
@@ -235,7 +235,7 @@ export default function CandidatesPage() {
                             )}
                           </div>
                         </div>
-                        <Link href={`/nominations/${nomination.id}`}>
+                        <Link href={`/nominations/${nomination.id}`} className="cursor-pointer">
                           <Button variant="ghost" size="sm">
                             View
                           </Button>

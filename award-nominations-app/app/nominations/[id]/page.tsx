@@ -177,13 +177,13 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
       <div className="container mx-auto p-6 space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => router.back()}>
+          <Button variant="ghost" size="icon" onClick={() => router.back()} className="cursor-pointer">
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="flex-1">
             <h1 className="text-4xl font-bold tracking-tight">{nomination.candidateName}</h1>
             <p className="text-muted-foreground mt-2">
-              <Link href={`/awards/${award.id}`} className="hover:underline">
+              <Link href={`/awards/${award.id}`} className="hover:underline cursor-pointer">
                 {award.sponsor} - {award.awardOrPrize}
               </Link>
               {' '}- {nomination.nominationYear}
@@ -212,7 +212,7 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
           })()}
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="destructive" size="sm">
+              <Button variant="destructive" size="sm" className="cursor-pointer">
                 <Trash2 className="h-4 w-4 mr-2" />
                 Delete
               </Button>

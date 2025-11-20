@@ -91,13 +91,13 @@ export default function NominationsPage() {
             <p className="text-muted-foreground mt-2">View all nominations across all awards</p>
           </div>
           <div className="flex gap-2">
-            <Link href="/">
+            <Link href="/" className="cursor-pointer">
               <Button variant="outline">
                 <AwardIcon className="mr-2 h-4 w-4" />
                 Awards
               </Button>
             </Link>
-            <Link href="/candidates">
+            <Link href="/candidates" className="cursor-pointer">
               <Button variant="outline">
                 <User className="mr-2 h-4 w-4" />
                 Candidates
@@ -184,7 +184,7 @@ export default function NominationsPage() {
                           <TableCell>
                             <Link
                               href={`/awards/${nomination.awardId}`}
-                              className="text-primary hover:underline"
+                              className="text-primary hover:underline cursor-pointer"
                             >
                               {getAwardName(nomination.awardId)}
                             </Link>
@@ -208,7 +208,7 @@ export default function NominationsPage() {
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <Link href={`/nominations/${nomination.id}`}>
+                            <Link href={`/nominations/${nomination.id}`} className="cursor-pointer">
                               <Button variant="ghost" size="sm">
                                 Manage
                               </Button>
