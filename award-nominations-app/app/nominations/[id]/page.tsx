@@ -12,10 +12,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Save, FileText, Users, CheckCircle, Plus, Trash2, Calendar } from 'lucide-react';
+import { ArrowLeft, Save, FileText, Users, CheckCircle, Plus, Trash2, Calendar, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 import { FileUpload } from '@/components/file-upload';
 import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 export default function NominationDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -98,6 +109,26 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
     }
   };
 
+  const handleDelete = async () => {
+    if (!nomination) return;
+
+    try {
+      const response = await fetch(`/api/nominations/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        toast.success('Nomination deleted successfully!');
+        router.push('/nominations');
+      } else {
+        toast.error('Failed to delete nomination');
+      }
+    } catch (error) {
+      console.error('Error deleting nomination:', error);
+      toast.error('Failed to delete nomination');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -161,6 +192,28 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
           <Badge variant={nomination.status === 'successful' ? 'default' : 'outline'}>
             {nomination.status}
           </Badge>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" size="sm">
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete Nomination?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to delete this nomination for {nomination.candidateName}? This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  Delete Nomination
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
 
         {/* Details Section */}

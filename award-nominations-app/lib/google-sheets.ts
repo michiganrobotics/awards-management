@@ -311,3 +311,33 @@ export async function updateNomination(id: string, updates: Partial<Nomination>)
   const nominations = await getNominations();
   return nominations.find((n) => n.id === actualId) || null;
 }
+
+export async function deleteNomination(id: string): Promise<boolean> {
+  const doc = await getSpreadsheet();
+  const sheet = doc.sheetsByTitle['Nominations'];
+  if (!sheet) {
+    console.error('deleteNomination: Nominations sheet not found');
+    return false;
+  }
+
+  const rows = await sheet.getRows();
+  console.log('deleteNomination: Looking for ID:', id);
+
+  // Find row by ID, or if ID starts with "nomination-row-", find by row number
+  let row = rows.find((r) => r.get('id') === id);
+
+  if (!row && id.startsWith('nomination-row-')) {
+    const rowNumber = parseInt(id.replace('nomination-row-', ''));
+    row = rows.find((r) => r.rowNumber === rowNumber);
+    console.log('deleteNomination: Found row by row number:', rowNumber);
+  }
+
+  if (!row) {
+    console.error('deleteNomination: Row not found for ID:', id);
+    return false;
+  }
+
+  await row.delete();
+  console.log('deleteNomination: Successfully deleted nomination:', id);
+  return true;
+}

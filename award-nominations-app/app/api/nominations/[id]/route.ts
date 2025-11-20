@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { updateNomination } from '@/lib/google-sheets';
+import { updateNomination, deleteNomination } from '@/lib/google-sheets';
 import { withAuth } from '@/lib/api-utils';
 import { validateNominationUpdate } from '@/lib/validation';
 import { ZodError } from 'zod';
@@ -49,6 +49,37 @@ export const PATCH = withAuth(async (
 
     return NextResponse.json(
       { error: 'Failed to update nomination' },
+      { status: 500 }
+    );
+  }
+});
+
+export const DELETE = withAuth(async (
+  request: NextRequest,
+  context?: { params: Promise<{ id: string }> }
+) => {
+  try {
+    if (!context?.params) {
+      console.error('DELETE: Missing context or params');
+      return NextResponse.json({ error: 'Invalid request - missing params' }, { status: 400 });
+    }
+    const { id } = await context.params;
+    console.log('DELETE: Deleting nomination with ID:', id);
+
+    const success = await deleteNomination(id);
+
+    if (!success) {
+      return NextResponse.json(
+        { error: 'Nomination not found' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting nomination:', error);
+    return NextResponse.json(
+      { error: 'Failed to delete nomination' },
       { status: 500 }
     );
   }
