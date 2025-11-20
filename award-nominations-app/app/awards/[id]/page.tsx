@@ -86,19 +86,6 @@ export default function AwardDetailPage({ params }: { params: Promise<{ id: stri
     }
   };
 
-  const getStatusIcon = (status: Nomination['status']) => {
-    switch (status) {
-      case 'successful':
-        return <CheckCircle2 className="h-4 w-4 text-green-600" />;
-      case 'submitted':
-        return <Clock className="h-4 w-4 text-blue-600" />;
-      case 'unsuccessful':
-        return <XCircle className="h-4 w-4 text-red-600" />;
-      default:
-        return <Clock className="h-4 w-4 text-gray-600" />;
-    }
-  };
-
   const getStatusBadge = (status: Nomination['status']) => {
     const variants: Record<Nomination['status'], 'default' | 'secondary' | 'destructive' | 'outline'> = {
       pending: 'outline',
@@ -393,17 +380,7 @@ export default function AwardDetailPage({ params }: { params: Promise<{ id: stri
                         <TableCell className="font-medium">{nomination.candidateName}</TableCell>
                         <TableCell>{nomination.nominatedBy}</TableCell>
                         <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Tooltip>
-                              <TooltipTrigger>
-                                {getStatusIcon(nomination.status)}
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Status: {nomination.status}</p>
-                              </TooltipContent>
-                            </Tooltip>
-                            {getStatusBadge(nomination.status)}
-                          </div>
+                          {getStatusBadge(nomination.status)}
                         </TableCell>
                         <TableCell>
                           <Tooltip>
