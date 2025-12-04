@@ -92,6 +92,7 @@ export default function AwardDetailPage({ params }: { params: Promise<{ id: stri
       submitted: 'default',
       successful: 'default',
       unsuccessful: 'outline',
+      ineligible: 'outline',
     };
 
     let className = '';
@@ -103,6 +104,8 @@ export default function AwardDetailPage({ params }: { params: Promise<{ id: stri
       className = 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200';
     } else if (status === 'submitted') {
       className = 'bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200';
+    } else if (status === 'ineligible') {
+      className = 'bg-red-100 text-red-800 border-red-300 hover:bg-red-200';
     }
 
     return <Badge variant={variants[status]} className={className}>{status}</Badge>;

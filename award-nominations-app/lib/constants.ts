@@ -4,6 +4,7 @@ export const NOMINATION_STATUS = {
   SUBMITTED: 'submitted',
   SUCCESSFUL: 'successful',
   UNSUCCESSFUL: 'unsuccessful',
+  INELIGIBLE: 'ineligible',
 } as const;
 
 export type NominationStatus = typeof NOMINATION_STATUS[keyof typeof NOMINATION_STATUS];

@@ -195,6 +195,7 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
                   submitted: 'default',
                   successful: 'default',
                   unsuccessful: 'outline',
+                  ineligible: 'outline',
                 };
 
                 let className = '';
@@ -206,6 +207,8 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
                   className = 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200';
                 } else if (nomination.status === 'submitted') {
                   className = 'bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200';
+                } else if (nomination.status === 'ineligible') {
+                  className = 'bg-red-100 text-red-800 border-red-300 hover:bg-red-200';
                 }
 
                 return <Badge variant={variants[nomination.status]} className={className}>{nomination.status}</Badge>;
@@ -292,6 +295,7 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
                     <SelectItem value="submitted">Submitted</SelectItem>
                     <SelectItem value="successful">Successful</SelectItem>
                     <SelectItem value="unsuccessful">Unsuccessful</SelectItem>
+                    <SelectItem value="ineligible">Ineligible</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
