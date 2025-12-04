@@ -220,7 +220,7 @@ export default function CandidatesPage() {
                                   : nomination.status === 'submitted'
                                   ? 'bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200'
                                   : nomination.status === 'ineligible'
-                                  ? 'bg-red-100 text-red-800 border-red-300 hover:bg-red-200'
+                                  ? 'bg-purple-100 text-purple-800 border-purple-300 hover:bg-purple-200'
                                   : ''
                               }
                             >

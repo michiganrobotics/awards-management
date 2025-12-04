@@ -208,7 +208,7 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
                 } else if (nomination.status === 'submitted') {
                   className = 'bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200';
                 } else if (nomination.status === 'ineligible') {
-                  className = 'bg-red-100 text-red-800 border-red-300 hover:bg-red-200';
+                  className = 'bg-purple-100 text-purple-800 border-purple-300 hover:bg-purple-200';
                 }
 
                 return <Badge variant={variants[nomination.status]} className={className}>{nomination.status}</Badge>;
