@@ -71,7 +71,7 @@ export interface NominationTask {
 }
 
 export type FilterOptions = {
-  division?: string;
+  sponsor?: string;
   deadlineMonth?: string;
   academicCareerLevel?: string;
   awardType?: string;

@@ -81,9 +81,9 @@ export default function Dashboard() {
       );
     }
 
-    // Division filter
-    if (filters.division) {
-      filtered = filtered.filter((award) => award.division === filters.division);
+    // Sponsor filter
+    if (filters.sponsor) {
+      filtered = filtered.filter((award) => award.sponsor === filters.sponsor);
     }
 
     // Deadline month filter
@@ -215,21 +215,21 @@ export default function Dashboard() {
             </div>
             <div className="grid gap-4 md:grid-cols-3">
               <div className="space-y-2">
-                <Label htmlFor="division">Division</Label>
+                <Label htmlFor="sponsor">Sponsor</Label>
                 <Select
-                  value={filters.division || 'all'}
+                  value={filters.sponsor || 'all'}
                   onValueChange={(value) =>
-                    setFilters({ ...filters, division: value === 'all' ? undefined : value })
+                    setFilters({ ...filters, sponsor: value === 'all' ? undefined : value })
                   }
                 >
-                  <SelectTrigger id="division">
-                    <SelectValue placeholder="All Divisions" />
+                  <SelectTrigger id="sponsor">
+                    <SelectValue placeholder="All Sponsors" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Divisions</SelectItem>
-                    {uniqueValues('division').map((div) => (
-                      <SelectItem key={div} value={div}>
-                        {div}
+                    <SelectItem value="all">All Sponsors</SelectItem>
+                    {uniqueValues('sponsor').map((sponsor) => (
+                      <SelectItem key={sponsor} value={sponsor}>
+                        {sponsor}
                       </SelectItem>
                     ))}
                   </SelectContent>
