@@ -201,7 +201,7 @@
         "Run npm install to update lockfile",
         "Verify ESLint still works correctly"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "future",
