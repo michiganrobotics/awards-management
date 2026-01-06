@@ -67,7 +67,7 @@
         "Ensure screen readers can identify all form controls",
         "Verify no accessibility warnings in browser dev tools"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "accessibility",

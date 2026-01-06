@@ -93,3 +93,26 @@
   * Note: Build verification blocked by pre-existing lightningcss issue
     - All TypeScript changes are syntactically correct
     - Logger utility follows existing code patterns
+
+- Completed: Improve status badge accessibility
+  * Updated components/status-badge.tsx to be fully accessible for screen readers
+  * Added `role="status"` attribute to the Badge component for proper ARIA semantics
+  * Added `aria-label` with descriptive text (e.g., "Nomination status: Successful")
+  * Added `sr-only` span with full context text for screen readers
+  * Added `aria-hidden="true"` to the visual text to avoid duplicate announcements
+  * Added `getTypeLabel()` function to provide context about the type of status
+  * Added `getScreenReaderText()` function to generate full accessible text
+  * Screen readers now announce: "[Type] status: [Value]" (e.g., "Nomination status: Pending")
+  * The visible text label ensures color is not the only indicator of status
+  * Note: Some pages have inline getStatusBadge functions that could be refactored to use the shared component
+
+- Completed: Add ARIA labels to form controls
+  * Audited all form inputs across app pages and components
+  * Fixed app/page.tsx: Added aria-label to search input, aria-hidden to decorative Search icon
+  * Fixed app/candidates/page.tsx: Added aria-label to search input, aria-hidden to decorative Search icon
+  * Fixed app/nominations/[id]/page.tsx: Added id to Notes CardTitle and aria-labelledby to Textarea
+  * Fixed components/file-upload.tsx: Added sr-only label and aria-label to file category select
+  * Fixed components/file-upload.tsx: Added id and aria-label to file upload input, htmlFor to label
+  * All existing form controls (Sponsor, Deadline, Career Level dropdowns, form inputs) already had proper labels
+  * Verified build passes with no TypeScript errors
+  * Screen readers can now identify all form controls properly

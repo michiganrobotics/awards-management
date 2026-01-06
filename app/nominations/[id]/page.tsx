@@ -509,7 +509,7 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Notes</CardTitle>
+                  <CardTitle id="notes-title">Notes</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <Textarea
@@ -517,6 +517,7 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
                     onChange={(e) => setLocalNomination({ ...localNomination, notes: e.target.value })}
                     className="min-h-[150px]"
                     placeholder="Add notes about this nomination, including file links, contacts, etc."
+                    aria-labelledby="notes-title"
                   />
                   <Button onClick={() => handleUpdate(localNomination)} disabled={saving} className="cursor-pointer">
                     <Save className="mr-2 h-4 w-4" />

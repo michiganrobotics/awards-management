@@ -129,10 +129,13 @@ export function FileUpload({ nominationId, files, onFilesChange }: FileUploadPro
     <div className="space-y-4">
       {/* Upload Section */}
       <div className="space-y-2">
+        <label htmlFor="file-category" className="sr-only">File category</label>
         <select
+          id="file-category"
           value={category}
           onChange={(e) => setCategory(e.target.value)}
           className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm cursor-pointer"
+          aria-label="Select file category"
         >
           <option value="letter">Nomination Letter</option>
           <option value="support_letter">Support Letter</option>
@@ -141,12 +144,14 @@ export function FileUpload({ nominationId, files, onFilesChange }: FileUploadPro
           <option value="other">Other</option>
         </select>
 
-        <label className="block">
+        <label htmlFor="file-upload" className="block">
           <input
+            id="file-upload"
             type="file"
             onChange={handleFileUpload}
             disabled={uploading}
             className="hidden"
+            aria-label="Choose file to upload"
           />
           <Button
             variant="outline"
