@@ -320,13 +320,14 @@ export default function Dashboard() {
                     <TableHead>Amount</TableHead>
                     <TableHead>Priority</TableHead>
                     <TableHead>Career Level</TableHead>
+                    <TableHead>Honorifics Office</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredAwards.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                         No awards found. Try adjusting your filters.
                       </TableCell>
                     </TableRow>
@@ -352,13 +353,7 @@ export default function Dashboard() {
                         </TableCell>
                         <TableCell>
                           {award.priorityRanking ? (
-                            <Badge
-                              variant={
-                                award.priorityRanking.toLowerCase().includes('high')
-                                  ? 'default'
-                                  : 'outline'
-                              }
-                            >
+                            <Badge variant="outline">
                               {award.priorityRanking}
                             </Badge>
                           ) : (
@@ -368,6 +363,11 @@ export default function Dashboard() {
                         <TableCell>
                           <div className="text-sm text-muted-foreground max-w-[200px] truncate">
                             {award.academicCareerLevel}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm text-muted-foreground max-w-[150px] truncate">
+                            {award.honorificsOfficeAssistance || '-'}
                           </div>
                         </TableCell>
                         <TableCell>

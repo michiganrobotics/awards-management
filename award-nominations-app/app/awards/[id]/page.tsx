@@ -240,12 +240,16 @@ export default function AwardDetailPage({ params }: { params: Promise<{ id: stri
                   <div className="text-sm font-medium text-muted-foreground">Priority</div>
                   <div className="mt-1">
                     {award.priorityRanking ? (
-                      <Badge>{award.priorityRanking}</Badge>
+                      <Badge variant="outline">{award.priorityRanking}</Badge>
                     ) : (
                       'N/A'
                     )}
                   </div>
                 </div>
+              </div>
+              <div>
+                <div className="text-sm font-medium text-muted-foreground">Honorifics Office Assistance</div>
+                <div className="mt-1">{award.honorificsOfficeAssistance || 'N/A'}</div>
               </div>
             </CardContent>
           </Card>
