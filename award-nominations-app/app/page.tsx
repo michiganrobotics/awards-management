@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Search, Plus, Calendar, DollarSign, Filter, User } from 'lucide-react';
+import { Search, Calendar, User } from 'lucide-react';
 import Link from 'next/link';
 import { useAwards } from '@/hooks/use-awards';
 

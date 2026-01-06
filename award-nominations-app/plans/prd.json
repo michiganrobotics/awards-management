@@ -191,7 +191,7 @@
         "Run ESLint to identify other unused imports",
         "Remove all identified unused imports"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "technical-debt",
