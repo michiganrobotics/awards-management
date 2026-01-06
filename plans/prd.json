@@ -77,7 +77,7 @@
         "Ensure screen readers announce status correctly",
         "Verify color is not the only indicator of status"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "accessibility",

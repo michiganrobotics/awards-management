@@ -49,9 +49,32 @@ export function StatusBadge({ status, type }: StatusBadgeProps) {
       .join(' ');
   };
 
+  const getTypeLabel = () => {
+    switch (type) {
+      case 'nomination':
+        return 'Nomination status';
+      case 'letter':
+        return 'Letter status';
+      case 'supportLetter':
+        return 'Support letter status';
+      default:
+        return 'Status';
+    }
+  };
+
+  const getScreenReaderText = () => {
+    return `${getTypeLabel()}: ${getStatusLabel()}`;
+  };
+
   return (
-    <Badge className={getStatusColor()} variant="secondary">
-      {getStatusLabel()}
+    <Badge
+      className={getStatusColor()}
+      variant="secondary"
+      role="status"
+      aria-label={getScreenReaderText()}
+    >
+      <span aria-hidden="true">{getStatusLabel()}</span>
+      <span className="sr-only">{getScreenReaderText()}</span>
     </Badge>
   );
 }
