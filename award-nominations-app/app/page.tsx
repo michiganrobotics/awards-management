@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Award, FilterOptions } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -15,7 +15,6 @@ import Link from 'next/link';
 
 export default function Dashboard() {
   const [awards, setAwards] = useState<Award[]>([]);
-  const [filteredAwards, setFilteredAwards] = useState<Award[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<FilterOptions>({});
   const [searchTerm, setSearchTerm] = useState('');
@@ -24,10 +23,6 @@ export default function Dashboard() {
   useEffect(() => {
     fetchAwards();
   }, []);
-
-  useEffect(() => {
-    filterAwards();
-  }, [awards, filters, searchTerm, sortOrder]);
 
   const fetchAwards = async () => {
     try {
@@ -57,16 +52,23 @@ export default function Dashboard() {
 
     // Handle M/D or MM/DD format (e.g., "10/1", "1/15")
     if (deadlineStr.includes('/')) {
-      const [month, day] = deadlineStr.split('/').map(num => parseInt(num));
-      if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
-        let deadlineDate = new Date(currentYear, month - 1, day);
+      const parts = deadlineStr.split('/');
+      // Validate we have exactly 2 parts before parsing
+      if (parts.length === 2) {
+        const month = parseInt(parts[0]);
+        const day = parseInt(parts[1]);
 
-        // If deadline has passed this year, use next year
-        if (deadlineDate < today) {
-          deadlineDate = new Date(currentYear + 1, month - 1, day);
+        // Validate parsed values are not NaN and within valid ranges
+        if (!isNaN(month) && !isNaN(day) && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+          let deadlineDate = new Date(currentYear, month - 1, day);
+
+          // If deadline has passed this year, use next year
+          if (deadlineDate < today) {
+            deadlineDate = new Date(currentYear + 1, month - 1, day);
+          }
+
+          return deadlineDate;
         }
-
-        return deadlineDate;
       }
     }
 
@@ -80,7 +82,8 @@ export default function Dashboard() {
     return null;
   };
 
-  const filterAwards = () => {
+  // Use useMemo to avoid re-creating filter function on every render
+  const filteredAwards = useMemo(() => {
     let filtered = [...awards];
 
     // Search filter
@@ -126,8 +129,8 @@ export default function Dashboard() {
         : dateB.getTime() - dateA.getTime();
     });
 
-    setFilteredAwards(filtered);
-  };
+    return filtered;
+  }, [awards, filters, searchTerm, sortOrder]);
 
   const uniqueValues = (field: keyof Award): string[] => {
     return Array.from(

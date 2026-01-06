@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Nomination, Award } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,17 +17,12 @@ interface CandidateGroup {
 
 export default function CandidatesPage() {
   const [candidates, setCandidates] = useState<CandidateGroup[]>([]);
-  const [filteredCandidates, setFilteredCandidates] = useState<CandidateGroup[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchData();
   }, []);
-
-  useEffect(() => {
-    filterCandidates();
-  }, [candidates, searchTerm]);
 
   const fetchData = async () => {
     try {
@@ -67,21 +62,19 @@ export default function CandidatesPage() {
     }
   };
 
-  const filterCandidates = () => {
+  const filteredCandidates = useMemo(() => {
     if (!searchTerm) {
-      setFilteredCandidates(candidates);
-      return;
+      return candidates;
     }
 
     const search = searchTerm.toLowerCase();
-    const filtered = candidates.filter((candidate) =>
+    return candidates.filter((candidate) =>
       candidate.name.toLowerCase().includes(search) ||
       candidate.nominations.some((nom) =>
         nom.award?.awardOrPrize.toLowerCase().includes(search)
       )
     );
-    setFilteredCandidates(filtered);
-  };
+  }, [candidates, searchTerm]);
 
   const getStatusColor = (status: Nomination['status']) => {
     switch (status) {

@@ -72,7 +72,20 @@ export async function requireAuth(request: NextRequest): Promise<AuthUser> {
 
 /**
  * Check if running in development mode (bypass auth)
+ * SECURITY: Explicitly checks that we're NOT in production to prevent accidental bypass
  */
 export function isDevelopment(): boolean {
-  return process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_DEV_MODE === 'true';
+  // Double-check we're NOT in production
+  if (process.env.NODE_ENV === 'production') {
+    return false;
+  }
+
+  const isDev = process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_DEV_MODE === 'true';
+
+  // Log warning when auth is bypassed
+  if (isDev) {
+    console.warn('⚠️  AUTH BYPASSED - Development mode active');
+  }
+
+  return isDev;
 }

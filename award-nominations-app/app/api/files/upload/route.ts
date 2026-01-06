@@ -6,6 +6,15 @@ import { VALIDATION_LIMITS, FILE_CATEGORY } from '@/lib/constants';
 
 export const POST = withAuth(async (request: NextRequest) => {
   try {
+    // SECURITY: Check Content-Length header before reading the file to prevent DoS
+    const contentLength = request.headers.get('content-length');
+    if (contentLength && parseInt(contentLength) > VALIDATION_LIMITS.MAX_FILE_SIZE) {
+      return NextResponse.json(
+        { error: `File size exceeds maximum of ${VALIDATION_LIMITS.MAX_FILE_SIZE / 1024 / 1024}MB` },
+        { status: 413 }  // 413 Payload Too Large
+      );
+    }
+
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const nominationId = formData.get('nominationId') as string;
@@ -20,11 +29,11 @@ export const POST = withAuth(async (request: NextRequest) => {
       return NextResponse.json({ error: 'No nomination ID provided' }, { status: 400 });
     }
 
-    // Validate file size
+    // Double-check file size after reading (defense in depth)
     if (file.size > VALIDATION_LIMITS.MAX_FILE_SIZE) {
       return NextResponse.json(
         { error: `File size exceeds maximum of ${VALIDATION_LIMITS.MAX_FILE_SIZE / 1024 / 1024}MB` },
-        { status: 400 }
+        { status: 413 }
       );
     }
 
@@ -67,8 +76,13 @@ export const POST = withAuth(async (request: NextRequest) => {
       await updateNomination(nominationId, { driveFolderId: folderId });
     }
 
-    // Sanitize filename to prevent path traversal
-    const sanitizedName = file.name.replace(/[/\\]/g, '_');
+    // Sanitize filename to prevent path traversal and malicious characters
+    const sanitizedName = file.name
+      .replace(/[<>:"/\\|?*\x00-\x1F]/g, '_')  // Remove dangerous characters
+      .replace(/^\.+/, '')  // Remove leading dots
+      .replace(/\.{2,}/g, '.')  // Collapse multiple dots to single dot
+      .replace(/^_+|_+$/g, '')  // Remove leading/trailing underscores
+      .substring(0, 255);  // Limit filename length
 
     // Append category to filename
     const fileExtension = sanitizedName.includes('.') ? sanitizedName.substring(sanitizedName.lastIndexOf('.')) : '';

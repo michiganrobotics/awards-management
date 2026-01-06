@@ -4,8 +4,19 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Upload, X, FileText, Loader2, ExternalLink } from 'lucide-react';
 import { NominationFile } from '@/lib/types';
+import { toast } from 'sonner';
 
 interface FileUploadProps {
   nominationId: string;
@@ -16,6 +27,7 @@ interface FileUploadProps {
 export function FileUpload({ nominationId, files, onFilesChange }: FileUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [category, setCategory] = useState<string>('other');
+  const [fileToDelete, setFileToDelete] = useState<string | null>(null);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -34,36 +46,40 @@ export function FileUpload({ nominationId, files, onFilesChange }: FileUploadPro
       });
 
       if (response.ok) {
+        toast.success('File uploaded successfully');
         onFilesChange();
       } else {
         const error = await response.json();
-        alert(`Upload failed: ${error.error}`);
+        toast.error(`Upload failed: ${error.error}`);
       }
     } catch (error) {
       console.error('Error uploading file:', error);
-      alert('Failed to upload file');
+      toast.error('Failed to upload file');
     } finally {
       setUploading(false);
       e.target.value = '';
     }
   };
 
-  const handleDelete = async (fileId: string) => {
-    if (!confirm('Are you sure you want to delete this file?')) return;
+  const confirmDelete = async () => {
+    if (!fileToDelete) return;
 
     try {
-      const response = await fetch(`/api/files/${nominationId}?fileId=${fileId}`, {
+      const response = await fetch(`/api/files/${nominationId}?fileId=${fileToDelete}`, {
         method: 'DELETE',
       });
 
       if (response.ok) {
+        toast.success('File deleted successfully');
         onFilesChange();
       } else {
-        alert('Failed to delete file');
+        toast.error('Failed to delete file');
       }
     } catch (error) {
       console.error('Error deleting file:', error);
-      alert('Failed to delete file');
+      toast.error('Failed to delete file');
+    } finally {
+      setFileToDelete(null);
     }
   };
 
@@ -198,7 +214,7 @@ export function FileUpload({ nominationId, files, onFilesChange }: FileUploadPro
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleDelete(file.id)}
+                      onClick={() => setFileToDelete(file.id)}
                       className="cursor-pointer"
                     >
                       <X className="h-4 w-4" />
@@ -214,6 +230,22 @@ export function FileUpload({ nominationId, files, onFilesChange }: FileUploadPro
           No files uploaded yet
         </p>
       )}
+
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={!!fileToDelete} onOpenChange={(open) => !open && setFileToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete File</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this file? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

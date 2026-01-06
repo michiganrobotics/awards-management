@@ -139,8 +139,11 @@ export async function createFolder(folderName: string, parentFolderId?: string):
 
 /**
  * Escape special characters for Google Drive query
+ * SECURITY: Escape backslashes first, then single quotes to prevent injection
  */
 function escapeDriveQuery(value: string): string {
+  // Must escape backslashes FIRST, then single quotes
+  // This prevents injection attempts with malicious inputs
   return value.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 }
 

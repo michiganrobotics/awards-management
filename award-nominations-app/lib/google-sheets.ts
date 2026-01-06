@@ -12,7 +12,23 @@ const SCOPES = [
 ];
 
 // Sheet creation lock to prevent race conditions
-const sheetCreationLocks = new Map<string, Promise<any>>();
+interface SheetLock {
+  promise: Promise<any>;
+  timestamp: number;
+}
+
+const sheetCreationLocks = new Map<string, SheetLock>();
+
+// Clean up stale locks (older than 5 minutes)
+const LOCK_TIMEOUT = 5 * 60 * 1000;
+function cleanupStaleLocks() {
+  const now = Date.now();
+  for (const [sheetName, lock] of sheetCreationLocks.entries()) {
+    if (now - lock.timestamp > LOCK_TIMEOUT) {
+      sheetCreationLocks.delete(sheetName);
+    }
+  }
+}
 
 function getAuthClient() {
   if (!process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || !process.env.GOOGLE_PRIVATE_KEY) {
@@ -45,10 +61,13 @@ async function ensureSheet(doc: GoogleSpreadsheet, sheetName: string, headerValu
   let sheet = doc.sheetsByTitle[sheetName];
 
   if (!sheet) {
+    // Clean up any stale locks before proceeding
+    cleanupStaleLocks();
+
     // Check if another request is already creating this sheet
     const existingLock = sheetCreationLocks.get(sheetName);
     if (existingLock) {
-      await existingLock;
+      await existingLock.promise;
       // After waiting, reload doc to get the newly created sheet
       await doc.loadInfo();
       sheet = doc.sheetsByTitle[sheetName];
@@ -56,6 +75,7 @@ async function ensureSheet(doc: GoogleSpreadsheet, sheetName: string, headerValu
     }
 
     // Create a new lock for this sheet creation
+    const timestamp = Date.now();
     const creationPromise = (async () => {
       try {
         await doc.loadInfo();
@@ -70,11 +90,12 @@ async function ensureSheet(doc: GoogleSpreadsheet, sheetName: string, headerValu
 
         return sheet;
       } finally {
+        // Always clean up the lock, even on error
         sheetCreationLocks.delete(sheetName);
       }
     })();
 
-    sheetCreationLocks.set(sheetName, creationPromise);
+    sheetCreationLocks.set(sheetName, { promise: creationPromise, timestamp });
     sheet = await creationPromise;
   }
 
@@ -173,12 +194,18 @@ export async function getNominations(): Promise<Nomination[]> {
       id = `nomination-row-${row.rowNumber}`;
     }
 
+    // Parse numeric values with validation
+    const yearStr = row.get('nominationYear') || new Date().getFullYear().toString();
+    const nominationYear = parseInt(yearStr, 10);
+    const supportLettersCountStr = row.get('supportLettersCount') || '0';
+    const supportLettersCount = parseInt(supportLettersCountStr, 10);
+
     return {
       id,
       awardId: row.get('awardId') || '',
       candidateName: row.get('candidateName') || '',
       nominatedBy: row.get('nominatedBy') || '',
-      nominationYear: parseInt(row.get('nominationYear') || new Date().getFullYear().toString(), 10),
+      nominationYear: isNaN(nominationYear) ? new Date().getFullYear() : nominationYear,
       status: (row.get('status') || 'pending') as Nomination['status'],
       letterStatus: (row.get('letterStatus') || 'not_started') as Nomination['letterStatus'],
       letterWriterName: row.get('letterWriterName') || undefined,
@@ -186,7 +213,7 @@ export async function getNominations(): Promise<Nomination[]> {
       supportLettersStatus: (row.get('supportLettersStatus') || 'not_started') as Nomination['supportLettersStatus'],
       // Safe JSON parsing to prevent crashes
       supportLetters: safeJsonParse(row.get('supportLetters'), []),
-      supportLettersCount: parseInt(row.get('supportLettersCount') || '0', 10),
+      supportLettersCount: isNaN(supportLettersCount) ? 0 : supportLettersCount,
       packageFiles: safeJsonParse(row.get('packageFiles'), []),
       driveFolderId: row.get('driveFolderId') || undefined,
       deadlineDate: row.get('deadlineDate') || undefined,
@@ -271,9 +298,11 @@ export async function updateNomination(id: string, updates: Partial<Nomination>)
   let actualId = id;
 
   if (!row && id.startsWith('nomination-row-')) {
-    const rowNumber = parseInt(id.replace('nomination-row-', ''));
-    row = rows.find((r) => r.rowNumber === rowNumber);
-    console.log('updateNomination: Found row by row number:', rowNumber);
+    const rowNumber = parseInt(id.replace('nomination-row-', ''), 10);
+    if (!isNaN(rowNumber)) {
+      row = rows.find((r) => r.rowNumber === rowNumber);
+      console.log('updateNomination: Found row by row number:', rowNumber);
+    }
 
     // If we found it by row number, set the proper UUID ID now
     if (row) {
@@ -327,9 +356,11 @@ export async function deleteNomination(id: string): Promise<boolean> {
   let row = rows.find((r) => r.get('id') === id);
 
   if (!row && id.startsWith('nomination-row-')) {
-    const rowNumber = parseInt(id.replace('nomination-row-', ''));
-    row = rows.find((r) => r.rowNumber === rowNumber);
-    console.log('deleteNomination: Found row by row number:', rowNumber);
+    const rowNumber = parseInt(id.replace('nomination-row-', ''), 10);
+    if (!isNaN(rowNumber)) {
+      row = rows.find((r) => r.rowNumber === rowNumber);
+      console.log('deleteNomination: Found row by row number:', rowNumber);
+    }
   }
 
   if (!row) {

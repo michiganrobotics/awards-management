@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useEffect, useState } from 'react';
+import { use, useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Award, Nomination, NominationFile, SupportLetter } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -37,12 +37,7 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    fetchData();
-    fetchFiles();
-  }, [id]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [nominationsRes, awardsRes] = await Promise.all([
         fetch('/api/nominations'),
@@ -63,9 +58,9 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
-  const fetchFiles = async () => {
+  const fetchFiles = useCallback(async () => {
     try {
       const response = await fetch(`/api/files/${id}`);
       if (response.ok) {
@@ -75,7 +70,12 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
     } catch (error) {
       console.error('Error fetching files:', error);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchData();
+    fetchFiles();
+  }, [fetchData, fetchFiles]);
 
   const handleUpdate = async (updates: Partial<Nomination>) => {
     if (!nomination) return;
@@ -274,9 +274,12 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
                   id="year"
                   type="number"
                   value={nomination.nominationYear}
-                  onChange={(e) =>
-                    setNomination({ ...nomination, nominationYear: parseInt(e.target.value) })
-                  }
+                  onChange={(e) => {
+                    const year = parseInt(e.target.value);
+                    if (!isNaN(year) || e.target.value === '') {
+                      setNomination({ ...nomination, nominationYear: year || 0 });
+                    }
+                  }}
                 />
               </div>
               <div className="space-y-2">
