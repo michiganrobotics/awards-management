@@ -144,37 +144,48 @@ export function FileUpload({ nominationId, files, onFilesChange }: FileUploadPro
           <option value="other">Other</option>
         </select>
 
-        <label htmlFor="file-upload" className="block">
+        <div className="relative">
           <input
             id="file-upload"
             type="file"
             onChange={handleFileUpload}
             disabled={uploading}
-            className="hidden"
-            aria-label="Choose file to upload"
+            className="sr-only"
+            aria-describedby="file-upload-description"
           />
           <Button
             variant="outline"
-            className="w-full cursor-pointer"
+            className="w-full cursor-pointer focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             disabled={uploading}
-            onClick={(e) => {
-              e.preventDefault();
-              (e.currentTarget.previousElementSibling as HTMLInputElement)?.click();
+            type="button"
+            aria-controls="file-upload"
+            aria-describedby="file-upload-description"
+            onClick={() => {
+              document.getElementById('file-upload')?.click();
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                document.getElementById('file-upload')?.click();
+              }
             }}
           >
             {uploading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
                 Uploading...
               </>
             ) : (
               <>
-                <Upload className="mr-2 h-4 w-4" />
+                <Upload className="mr-2 h-4 w-4" aria-hidden="true" />
                 Upload File
               </>
             )}
           </Button>
-        </label>
+          <span id="file-upload-description" className="sr-only">
+            Select a file to upload. Currently selected category: {getCategoryLabel(category)}
+          </span>
+        </div>
       </div>
 
       {/* Files List */}
@@ -185,10 +196,10 @@ export function FileUpload({ nominationId, files, onFilesChange }: FileUploadPro
               <CardContent className="p-3">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <span className="text-xl">{getFileIcon(file.mimeType)}</span>
+                    <span className="text-xl" aria-hidden="true">{getFileIcon(file.mimeType)}</span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium truncate">{file.name}</p>
+                        <p className="text-sm font-medium truncate" id={`file-name-${file.id}`}>{file.name}</p>
                         {(() => {
                           const category = file.category || extractCategoryFromFilename(file.name);
                           return category && (
@@ -209,18 +220,32 @@ export function FileUpload({ nominationId, files, onFilesChange }: FileUploadPro
                         variant="ghost"
                         size="sm"
                         onClick={() => window.open(file.webViewLink, '_blank')}
-                        className="cursor-pointer"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            window.open(file.webViewLink, '_blank');
+                          }
+                        }}
+                        className="cursor-pointer focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        aria-label={`View ${file.name} in new tab`}
                       >
-                        <ExternalLink className="h-4 w-4" />
+                        <ExternalLink className="h-4 w-4" aria-hidden="true" />
                       </Button>
                     )}
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => setFileToDelete(file.id)}
-                      className="cursor-pointer"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          setFileToDelete(file.id);
+                        }
+                      }}
+                      className="cursor-pointer focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      aria-label={`Delete ${file.name}`}
                     >
-                      <X className="h-4 w-4" />
+                      <X className="h-4 w-4" aria-hidden="true" />
                     </Button>
                   </div>
                 </div>

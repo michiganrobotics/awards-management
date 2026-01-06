@@ -56,7 +56,7 @@
         "Ensure visible focus indicators",
         "Test with keyboard-only navigation"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "accessibility",

@@ -116,3 +116,22 @@
   * All existing form controls (Sponsor, Deadline, Career Level dropdowns, form inputs) already had proper labels
   * Verified build passes with no TypeScript errors
   * Screen readers can now identify all form controls properly
+
+- Completed: Fix file upload keyboard navigation
+  * Updated components/file-upload.tsx with full keyboard accessibility
+  * Added onKeyDown handlers for Enter/Space keys to:
+    - Upload file button - triggers file picker dialog
+    - View file button - opens file in new tab
+    - Delete file button - opens delete confirmation dialog
+  * Added proper ARIA attributes for screen readers:
+    - aria-controls on upload button linking to file input
+    - aria-describedby with context about selected category
+    - aria-label on view/delete buttons with file name context
+    - aria-hidden="true" on decorative icons (Upload, Loader2, ExternalLink, X, file type emoji)
+  * Enhanced visible focus indicators:
+    - Added focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 classes
+    - Ensures keyboard focus is clearly visible on all interactive elements
+  * Changed file input from "hidden" to "sr-only" for better accessibility
+  * Added id to file names for potential future aria-labelledby references
+  * Added sr-only description span providing context for screen readers
+  * Build passes with no TypeScript errors
