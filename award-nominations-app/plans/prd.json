@@ -1,0 +1,264 @@
+{
+  "project": "Award Nominations App",
+  "description": "Remaining improvements for the award nominations management system after completing security fixes, critical bug fixes, React Query integration, and performance optimizations.",
+  "features": [
+    {
+      "category": "code-quality",
+      "description": "Remove production console.log statements",
+      "steps": [
+        "Identify all 96 console.log statements across 19 files",
+        "Create logging utility that respects environment settings",
+        "Replace console.log calls with logging utility",
+        "Ensure critical errors still logged appropriately"
+      ],
+      "passes": false
+    },
+    {
+      "category": "code-quality",
+      "description": "Replace 'any' types with proper TypeScript types",
+      "steps": [
+        "Define proper error types in lib/types.ts",
+        "Add Google Drive API types to lib/google-drive.ts",
+        "Fix 'any' usage in app/api/files/[nominationId]/route.ts",
+        "Run TypeScript strict mode to verify no 'any' remains"
+      ],
+      "passes": false
+    },
+    {
+      "category": "code-quality",
+      "description": "Create shared form components",
+      "steps": [
+        "Create components/forms/NominationForm.tsx with all nomination fields",
+        "Create components/forms/AwardForm.tsx with all award fields",
+        "Integrate React Hook Form for consistent state handling",
+        "Replace inline forms in pages with new components"
+      ],
+      "passes": false
+    },
+    {
+      "category": "code-quality",
+      "description": "Add error boundaries for graceful error handling",
+      "steps": [
+        "Create components/error-boundary.tsx component",
+        "Create app/error.tsx for Next.js error handling",
+        "Wrap application with global error boundary in layout",
+        "Add page-level error boundaries for critical sections",
+        "Display user-friendly error messages"
+      ],
+      "passes": false
+    },
+    {
+      "category": "accessibility",
+      "description": "Fix file upload keyboard navigation",
+      "steps": [
+        "Add keyboard event handlers (Enter/Space) to file upload button",
+        "Add proper ARIA attributes for screen readers",
+        "Ensure visible focus indicators",
+        "Test with keyboard-only navigation"
+      ],
+      "passes": false
+    },
+    {
+      "category": "accessibility",
+      "description": "Add ARIA labels to form controls",
+      "steps": [
+        "Audit all form inputs across app pages",
+        "Add aria-label or associated <label> elements to all inputs",
+        "Ensure screen readers can identify all form controls",
+        "Verify no accessibility warnings in browser dev tools"
+      ],
+      "passes": false
+    },
+    {
+      "category": "accessibility",
+      "description": "Improve status badge accessibility",
+      "steps": [
+        "Add sr-only text to StatusBadge component",
+        "Ensure screen readers announce status correctly",
+        "Verify color is not the only indicator of status"
+      ],
+      "passes": false
+    },
+    {
+      "category": "accessibility",
+      "description": "Add keyboard navigation to sortable table headers",
+      "steps": [
+        "Add onKeyDown handler for Enter/Space keys to table headers",
+        "Add tabIndex to make headers focusable",
+        "Add visible focus indicators",
+        "Announce sort direction changes to screen readers"
+      ],
+      "passes": false
+    },
+    {
+      "category": "state-management",
+      "description": "Extract filter logic to custom hooks",
+      "steps": [
+        "Create hooks/useFilteredAwards.ts for award filtering",
+        "Create hooks/useFilteredNominations.ts for nomination filtering",
+        "Move filter logic from app/page.tsx to custom hook",
+        "Move filter logic from app/candidates/page.tsx to custom hook",
+        "Simplify UI components by using new hooks"
+      ],
+      "passes": false
+    },
+    {
+      "category": "state-management",
+      "description": "Add URL-based filter state for shareability",
+      "steps": [
+        "Use useSearchParams to read filter state from URL",
+        "Update URL when filters change",
+        "Restore filters from URL on page load",
+        "Ensure browser back/forward works with filters"
+      ],
+      "passes": false
+    },
+    {
+      "category": "ux",
+      "description": "Add breadcrumb navigation to detail pages",
+      "steps": [
+        "Create components/breadcrumbs.tsx component",
+        "Add breadcrumbs to app/awards/[id]/page.tsx",
+        "Add breadcrumbs to app/nominations/[id]/page.tsx",
+        "Ensure current page is displayed but not clickable"
+      ],
+      "passes": false
+    },
+    {
+      "category": "ux",
+      "description": "Implement consistent back navigation",
+      "steps": [
+        "Create components/back-button.tsx component",
+        "Use router.back() when browser history exists",
+        "Fall back to parent route when no history available",
+        "Replace inconsistent back navigation across pages"
+      ],
+      "passes": false
+    },
+    {
+      "category": "ux",
+      "description": "Add active navigation state",
+      "steps": [
+        "Create components/nav-link.tsx with active state styling",
+        "Detect current route using usePathname",
+        "Apply visual styling to indicate active page",
+        "Update navigation in app/page.tsx header"
+      ],
+      "passes": false
+    },
+    {
+      "category": "ux",
+      "description": "Improve mobile navigation with hamburger menu",
+      "steps": [
+        "Create components/mobile-nav.tsx component",
+        "Add hamburger icon that appears on mobile screens",
+        "Implement slide-out menu with all navigation options",
+        "Close menu when navigation item selected",
+        "Update app/layout.tsx to include mobile nav"
+      ],
+      "passes": false
+    },
+    {
+      "category": "ux",
+      "description": "Add client-side form validation with React Hook Form",
+      "steps": [
+        "Install react-hook-form and @hookform/resolvers",
+        "Reuse Zod schemas from lib/validation.ts for client validation",
+        "Integrate React Hook Form in app/awards/[id]/page.tsx",
+        "Integrate React Hook Form in app/nominations/[id]/page.tsx",
+        "Show real-time validation feedback",
+        "Prevent form submission on invalid data"
+      ],
+      "passes": false
+    },
+    {
+      "category": "technical-debt",
+      "description": "Fix duplicate package-lock.json files",
+      "steps": [
+        "Identify root cause of multiple lockfiles",
+        "Consolidate to single package-lock.json",
+        "Update Next.js turbopack.root config if needed",
+        "Verify build warning is resolved"
+      ],
+      "passes": true
+    },
+    {
+      "category": "technical-debt",
+      "description": "Clean up unused imports",
+      "steps": [
+        "Remove unused Separator import from app/nominations/[id]/page.tsx",
+        "Remove unused AlertTriangle import from app/nominations/[id]/page.tsx",
+        "Run ESLint to identify other unused imports",
+        "Remove all identified unused imports"
+      ],
+      "passes": false
+    },
+    {
+      "category": "technical-debt",
+      "description": "Align eslint-config-next version with Next.js",
+      "steps": [
+        "Update eslint-config-next from 16.0.1 to 16.0.10",
+        "Run npm install to update lockfile",
+        "Verify ESLint still works correctly"
+      ],
+      "passes": false
+    },
+    {
+      "category": "future",
+      "description": "Add comprehensive testing suite",
+      "steps": [
+        "Install Jest/Vitest and React Testing Library",
+        "Configure test environment",
+        "Write unit tests for utility functions",
+        "Write component tests for key UI components",
+        "Add tests for React Query hooks"
+      ],
+      "passes": false
+    },
+    {
+      "category": "future",
+      "description": "Add end-to-end testing",
+      "steps": [
+        "Install Playwright or Cypress",
+        "Configure E2E test environment",
+        "Write E2E tests for critical user flows",
+        "Add E2E tests to CI pipeline"
+      ],
+      "passes": false
+    },
+    {
+      "category": "future",
+      "description": "Implement API rate limiting",
+      "steps": [
+        "Choose rate limiting strategy (token bucket, sliding window)",
+        "Implement rate limiter middleware",
+        "Apply to all API endpoints",
+        "Return appropriate 429 responses when limit exceeded"
+      ],
+      "passes": false
+    },
+    {
+      "category": "future",
+      "description": "Add audit logging for nomination changes",
+      "steps": [
+        "Design audit log schema",
+        "Create audit log storage (separate sheet or database)",
+        "Log all nomination create/update/delete operations",
+        "Include user, timestamp, and change details",
+        "Add UI to view audit history"
+      ],
+      "passes": false
+    },
+    {
+      "category": "future",
+      "description": "Add export functionality for data",
+      "steps": [
+        "Add export button to awards and nominations pages",
+        "Implement CSV export for awards list",
+        "Implement CSV export for nominations list",
+        "Consider Excel export option"
+      ],
+      "passes": false
+    }
+  ]
+}
