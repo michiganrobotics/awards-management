@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Nomination, Award } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Search, User, Calendar, Award as AwardIcon } from 'lucide-react';
 import Link from 'next/link';
+import { useNominations } from '@/hooks/use-nominations';
+import { useAwards } from '@/hooks/use-awards';
 
 interface CandidateGroup {
   name: string;
@@ -16,51 +18,34 @@ interface CandidateGroup {
 }
 
 export default function CandidatesPage() {
-  const [candidates, setCandidates] = useState<CandidateGroup[]>([]);
+  const { data: nominations = [], isLoading: nominationsLoading } = useNominations();
+  const { data: awards = [], isLoading: awardsLoading } = useAwards();
   const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const loading = nominationsLoading || awardsLoading;
 
-  const fetchData = async () => {
-    try {
-      const [nominationsRes, awardsRes] = await Promise.all([
-        fetch('/api/nominations'),
-        fetch('/api/awards'),
-      ]);
+  // Group nominations by candidate with memoization
+  const candidates = useMemo(() => {
+    // Group nominations by candidate
+    const grouped = nominations.reduce((acc, nomination) => {
+      const candidateName = nomination.candidateName;
+      if (!acc[candidateName]) {
+        acc[candidateName] = [];
+      }
+      // Attach award info to nomination
+      const award = awards.find((a) => a.id === nomination.awardId);
+      acc[candidateName].push({ ...nomination, award });
+      return acc;
+    }, {} as Record<string, Array<Nomination & { award?: Award }>>);
 
-      const nominations: Nomination[] = await nominationsRes.json();
-      const awards: Award[] = await awardsRes.json();
-
-      // Group nominations by candidate
-      const grouped = nominations.reduce((acc, nomination) => {
-        const candidateName = nomination.candidateName;
-        if (!acc[candidateName]) {
-          acc[candidateName] = [];
-        }
-        // Attach award info to nomination
-        const award = awards.find((a) => a.id === nomination.awardId);
-        acc[candidateName].push({ ...nomination, award });
-        return acc;
-      }, {} as Record<string, Array<Nomination & { award?: Award }>>);
-
-      // Convert to array and sort by candidate name
-      const candidateList = Object.entries(grouped)
-        .map(([name, nominations]) => ({
-          name,
-          nominations: nominations.sort((a, b) => b.nominationYear - a.nominationYear),
-        }))
-        .sort((a, b) => a.name.localeCompare(b.name));
-
-      setCandidates(candidateList);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    // Convert to array and sort by candidate name
+    return Object.entries(grouped)
+      .map(([name, nominations]) => ({
+        name,
+        nominations: nominations.sort((a, b) => b.nominationYear - a.nominationYear),
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [nominations, awards]);
 
   const filteredCandidates = useMemo(() => {
     if (!searchTerm) {

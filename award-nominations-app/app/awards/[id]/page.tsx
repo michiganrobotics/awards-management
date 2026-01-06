@@ -1,7 +1,7 @@
 'use client';
 
-import { use, useEffect, useState } from 'react';
-import { Award, Nomination } from '@/lib/types';
+import { use, useState, useMemo } from 'react';
+import { Nomination } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -16,13 +16,30 @@ import { ArrowLeft, ExternalLink, Plus, Calendar, CheckCircle2, Clock, XCircle, 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { useAwards } from '@/hooks/use-awards';
+import { useNominations, useCreateNomination } from '@/hooks/use-nominations';
 
 export default function AwardDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const [award, setAward] = useState<Award | null>(null);
-  const [nominations, setNominations] = useState<Nomination[]>([]);
-  const [loading, setLoading] = useState(true);
+
+  // Use React Query hooks
+  const { data: awards = [], isLoading: awardsLoading } = useAwards();
+  const { data: allNominations = [], isLoading: nominationsLoading } = useNominations();
+  const createNominationMutation = useCreateNomination();
+
+  // Find the award and its nominations
+  const award = useMemo(() =>
+    awards.find((a) => a.id === id) || null,
+    [awards, id]
+  );
+
+  const nominations = useMemo(() =>
+    allNominations.filter((n) => n.awardId === id),
+    [allNominations, id]
+  );
+
+  const loading = awardsLoading || nominationsLoading;
   const [showAddNomination, setShowAddNomination] = useState(false);
   const [newNomination, setNewNomination] = useState({
     candidateName: '',
@@ -30,56 +47,23 @@ export default function AwardDetailPage({ params }: { params: Promise<{ id: stri
     nominationYear: new Date().getFullYear(),
   });
 
-  useEffect(() => {
-    fetchAwardAndNominations();
-  }, [id]);
-
-  const fetchAwardAndNominations = async () => {
-    try {
-      const [awardsRes, nominationsRes] = await Promise.all([
-        fetch('/api/awards'),
-        fetch('/api/nominations'),
-      ]);
-
-      const awards = await awardsRes.json();
-      const allNominations = await nominationsRes.json();
-
-      const currentAward = awards.find((a: Award) => a.id === id);
-      setAward(currentAward || null);
-      setNominations(allNominations.filter((n: Nomination) => n.awardId === id));
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleAddNomination = async () => {
     try {
-      const response = await fetch('/api/nominations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...newNomination,
-          awardId: id,
-          status: 'pending',
-          letterStatus: 'not_started',
-          supportLettersStatus: 'not_started',
-        }),
+      await createNominationMutation.mutateAsync({
+        ...newNomination,
+        awardId: id,
+        status: 'pending',
+        letterStatus: 'not_started',
+        supportLettersStatus: 'not_started',
       });
 
-      if (response.ok) {
-        setShowAddNomination(false);
-        setNewNomination({
-          candidateName: '',
-          nominatedBy: '',
-          nominationYear: new Date().getFullYear(),
-        });
-        toast.success('Nomination added successfully!');
-        fetchAwardAndNominations();
-      } else {
-        toast.error('Failed to add nomination');
-      }
+      setShowAddNomination(false);
+      setNewNomination({
+        candidateName: '',
+        nominatedBy: '',
+        nominationYear: new Date().getFullYear(),
+      });
+      toast.success('Nomination added successfully!');
     } catch (error) {
       console.error('Error adding nomination:', error);
       toast.error('Failed to add nomination');

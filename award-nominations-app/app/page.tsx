@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
-import { Award, FilterOptions } from '@/lib/types';
+import { useState, useMemo } from 'react';
+import { FilterOptions, Award } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -12,30 +12,13 @@ import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Search, Plus, Calendar, DollarSign, Filter, User } from 'lucide-react';
 import Link from 'next/link';
+import { useAwards } from '@/hooks/use-awards';
 
 export default function Dashboard() {
-  const [awards, setAwards] = useState<Award[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: awards = [], isLoading: loading } = useAwards();
   const [filters, setFilters] = useState<FilterOptions>({});
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-
-  useEffect(() => {
-    fetchAwards();
-  }, []);
-
-  const fetchAwards = async () => {
-    try {
-      const response = await fetch('/api/awards');
-      if (!response.ok) throw new Error('Failed to fetch awards');
-      const data = await response.json();
-      setAwards(data);
-    } catch (error) {
-      console.error('Error fetching awards:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const parseDeadline = (deadlineStr: string) => {
     if (!deadlineStr) return null;

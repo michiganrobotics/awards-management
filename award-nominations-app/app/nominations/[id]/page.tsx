@@ -1,8 +1,8 @@
 'use client';
 
-import { use, useEffect, useState, useCallback } from 'react';
+import { use, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { Award, Nomination, NominationFile, SupportLetter } from '@/lib/types';
+import { Nomination, SupportLetter } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -27,58 +27,44 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { useNominations, useUpdateNomination, useNominationFiles } from '@/hooks/use-nominations';
+import { useAwards } from '@/hooks/use-awards';
 
 export default function NominationDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const [nomination, setNomination] = useState<Nomination | null>(null);
-  const [award, setAward] = useState<Award | null>(null);
-  const [files, setFiles] = useState<NominationFile[]>([]);
-  const [loading, setLoading] = useState(true);
+
+  // Use React Query hooks
+  const { data: nominations = [], isLoading: nominationsLoading } = useNominations();
+  const { data: awards = [], isLoading: awardsLoading } = useAwards();
+  const { data: files = [], refetch: refetchFiles } = useNominationFiles(id);
+  const updateNominationMutation = useUpdateNomination(id);
+
+  // Find the current nomination from the cached data
+  const nomination = useMemo(() =>
+    nominations.find((n) => n.id === id) || null,
+    [nominations, id]
+  );
+
+  const loading = nominationsLoading || awardsLoading;
+  const [localNomination, setLocalNomination] = useState<Nomination | null>(null);
+
+  // Find the award after localNomination is declared
+  const award = useMemo(() =>
+    localNomination ? awards.find((a) => a.id === localNomination.awardId) || null : null,
+    [awards, localNomination]
+  );
   const [saving, setSaving] = useState(false);
 
-  const fetchData = useCallback(async () => {
-    try {
-      const [nominationsRes, awardsRes] = await Promise.all([
-        fetch('/api/nominations'),
-        fetch('/api/awards'),
-      ]);
-      const nominations = await nominationsRes.json();
-      const awards = await awardsRes.json();
-
-      const currentNomination = nominations.find((n: Nomination) => n.id === id);
-      setNomination(currentNomination || null);
-
-      if (currentNomination) {
-        const currentAward = awards.find((a: Award) => a.id === currentNomination.awardId);
-        setAward(currentAward || null);
-      }
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    } finally {
-      setLoading(false);
+  // Update local state when nomination data changes
+  useMemo(() => {
+    if (nomination && !localNomination) {
+      setLocalNomination(nomination);
     }
-  }, [id]);
-
-  const fetchFiles = useCallback(async () => {
-    try {
-      const response = await fetch(`/api/files/${id}`);
-      if (response.ok) {
-        const data = await response.json();
-        setFiles(data.files || []);
-      }
-    } catch (error) {
-      console.error('Error fetching files:', error);
-    }
-  }, [id]);
-
-  useEffect(() => {
-    fetchData();
-    fetchFiles();
-  }, [fetchData, fetchFiles]);
+  }, [nomination, localNomination]);
 
   const handleUpdate = async (updates: Partial<Nomination>) => {
-    if (!nomination) return;
+    if (!localNomination) return;
 
     // Auto-complete letter and support letter statuses when nomination is finalized
     if (updates.status && ['successful', 'unsuccessful', 'submitted'].includes(updates.status)) {
@@ -88,19 +74,10 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
 
     setSaving(true);
     try {
-      const response = await fetch(`/api/nominations/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updates),
-      });
-
-      if (response.ok) {
-        const updated = await response.json();
-        setNomination(updated);
-        toast.success('Nomination updated successfully!');
-      } else {
-        toast.error('Failed to update nomination');
-      }
+      await updateNominationMutation.mutateAsync(updates);
+      // Update local state optimistically
+      setLocalNomination({ ...localNomination, ...updates });
+      toast.success('Nomination updated successfully!');
     } catch (error) {
       console.error('Error updating nomination:', error);
       toast.error('Failed to update nomination');
@@ -110,7 +87,7 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
   };
 
   const handleDelete = async () => {
-    if (!nomination) return;
+    if (!localNomination) return;
 
     try {
       const response = await fetch(`/api/nominations/${id}`, {
@@ -159,7 +136,7 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
     );
   }
 
-  if (!nomination || !award) {
+  if (!localNomination || !award) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
@@ -181,12 +158,12 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="flex-1">
-            <h1 className="text-4xl font-bold tracking-tight">{nomination.candidateName}</h1>
+            <h1 className="text-4xl font-bold tracking-tight">{localNomination.candidateName}</h1>
             <p className="text-muted-foreground mt-2">
               <Link href={`/awards/${award.id}`} className="hover:underline cursor-pointer">
                 {award.sponsor} - {award.awardOrPrize}
               </Link>
-              {' '}- {nomination.nominationYear}
+              {' '}- {localNomination.nominationYear}
             </p>
             <div className="mt-2">
               {(() => {
@@ -199,19 +176,19 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
                 };
 
                 let className = '';
-                if (nomination.status === 'successful') {
+                if (localNomination.status === 'successful') {
                   className = 'bg-green-600 text-white hover:bg-green-700';
-                } else if (nomination.status === 'pending') {
+                } else if (localNomination.status === 'pending') {
                   className = 'bg-orange-100 text-orange-800 border-orange-300 hover:bg-orange-200';
-                } else if (nomination.status === 'unsuccessful') {
+                } else if (localNomination.status === 'unsuccessful') {
                   className = 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200';
-                } else if (nomination.status === 'submitted') {
+                } else if (localNomination.status === 'submitted') {
                   className = 'bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200';
-                } else if (nomination.status === 'ineligible') {
+                } else if (localNomination.status === 'ineligible') {
                   className = 'bg-purple-100 text-purple-800 border-purple-300 hover:bg-purple-200';
                 }
 
-                return <Badge variant={variants[nomination.status]} className={className}>{nomination.status}</Badge>;
+                return <Badge variant={variants[localNomination.status]} className={className}>{localNomination.status}</Badge>;
               })()}
             </div>
           </div>
@@ -226,7 +203,7 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
               <AlertDialogHeader>
                 <AlertDialogTitle>Delete Nomination?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Are you sure you want to delete this nomination for {nomination.candidateName}? This action cannot be undone.
+                  Are you sure you want to delete this nomination for {localNomination.candidateName}? This action cannot be undone.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -252,9 +229,9 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
                 <Label htmlFor="candidate">Candidate Name</Label>
                 <Input
                   id="candidate"
-                  value={nomination.candidateName}
+                  value={localNomination.candidateName}
                   onChange={(e) =>
-                    setNomination({ ...nomination, candidateName: e.target.value })
+                    setLocalNomination({ ...localNomination, candidateName: e.target.value })
                   }
                 />
               </div>
@@ -262,9 +239,9 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
                 <Label htmlFor="nominator">Nominated By</Label>
                 <Input
                   id="nominator"
-                  value={nomination.nominatedBy}
+                  value={localNomination.nominatedBy}
                   onChange={(e) =>
-                    setNomination({ ...nomination, nominatedBy: e.target.value })
+                    setLocalNomination({ ...localNomination, nominatedBy: e.target.value })
                   }
                 />
               </div>
@@ -273,11 +250,11 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
                 <Input
                   id="year"
                   type="number"
-                  value={nomination.nominationYear}
+                  value={localNomination.nominationYear}
                   onChange={(e) => {
                     const year = parseInt(e.target.value);
                     if (!isNaN(year) || e.target.value === '') {
-                      setNomination({ ...nomination, nominationYear: year || 0 });
+                      setLocalNomination({ ...localNomination, nominationYear: year || 0 });
                     }
                   }}
                 />
@@ -285,9 +262,9 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
               <div className="space-y-2">
                 <Label htmlFor="status">Status</Label>
                 <Select
-                  value={nomination.status}
+                  value={localNomination.status}
                   onValueChange={(value) =>
-                    setNomination({ ...nomination, status: value as Nomination['status'] })
+                    setLocalNomination({ ...localNomination, status: value as Nomination['status'] })
                   }
                 >
                   <SelectTrigger id="status">
@@ -302,7 +279,7 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
                   </SelectContent>
                 </Select>
               </div>
-              <Button onClick={() => handleUpdate(nomination)} disabled={saving} className="w-full cursor-pointer">
+              <Button onClick={() => handleUpdate(localNomination)} disabled={saving} className="w-full cursor-pointer">
                 <Save className="mr-2 h-4 w-4" />
                 {saving ? 'Saving...' : 'Save Changes'}
               </Button>
@@ -323,9 +300,9 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
                 <Input
                   id="deadline"
                   type="date"
-                  value={nomination.deadlineDate || ''}
+                  value={localNomination.deadlineDate || ''}
                   onChange={(e) =>
-                    setNomination({ ...nomination, deadlineDate: e.target.value })
+                    setLocalNomination({ ...localNomination, deadlineDate: e.target.value })
                   }
                 />
               </div>
@@ -334,13 +311,13 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
                 <Input
                   id="submission"
                   type="date"
-                  value={nomination.submissionDate || ''}
+                  value={localNomination.submissionDate || ''}
                   onChange={(e) =>
-                    setNomination({ ...nomination, submissionDate: e.target.value })
+                    setLocalNomination({ ...localNomination, submissionDate: e.target.value })
                   }
                 />
               </div>
-              <Button onClick={() => handleUpdate(nomination)} disabled={saving} className="w-full cursor-pointer">
+              <Button onClick={() => handleUpdate(localNomination)} disabled={saving} className="w-full cursor-pointer">
                 <Save className="mr-2 h-4 w-4" />
                 Update Dates
               </Button>
@@ -362,9 +339,9 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
                 <Label htmlFor="writer-name">Writer Name</Label>
                 <Input
                   id="writer-name"
-                  value={nomination.letterWriterName || ''}
+                  value={localNomination.letterWriterName || ''}
                   onChange={(e) =>
-                    setNomination({ ...nomination, letterWriterName: e.target.value })
+                    setLocalNomination({ ...localNomination, letterWriterName: e.target.value })
                   }
                   placeholder="Enter writer's name"
                 />
@@ -373,9 +350,9 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
                 <Label htmlFor="writer-contact">Writer Contact</Label>
                 <Input
                   id="writer-contact"
-                  value={nomination.letterWriterContact || ''}
+                  value={localNomination.letterWriterContact || ''}
                   onChange={(e) =>
-                    setNomination({ ...nomination, letterWriterContact: e.target.value })
+                    setLocalNomination({ ...localNomination, letterWriterContact: e.target.value })
                   }
                   placeholder="Email or phone"
                 />
@@ -383,12 +360,12 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
               <div className="space-y-2">
                 <Label htmlFor="letter-status">Status</Label>
                 <Select
-                  value={nomination.letterStatus}
+                  value={localNomination.letterStatus}
                   onValueChange={(value) =>
                     handleUpdate({
                       letterStatus: value as Nomination['letterStatus'],
-                      letterWriterName: nomination.letterWriterName,
-                      letterWriterContact: nomination.letterWriterContact
+                      letterWriterName: localNomination.letterWriterName,
+                      letterWriterContact: localNomination.letterWriterContact
                     })
                   }
                 >
@@ -403,7 +380,7 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
                   </SelectContent>
                 </Select>
               </div>
-              {nomination.letterStatus === 'completed' && (
+              {localNomination.letterStatus === 'completed' && (
                 <div className="flex items-center gap-2 text-green-600">
                   <CheckCircle className="h-4 w-4" />
                   <span className="text-sm">Letter completed</span>
@@ -423,10 +400,10 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    const currentLetters = nomination.supportLetters || [];
+                    const currentLetters = localNomination.supportLetters || [];
                     if (currentLetters.length < 5) {
-                      setNomination({
-                        ...nomination,
+                      setLocalNomination({
+                        ...localNomination,
                         supportLetters: [
                           ...currentLetters,
                           { name: '', contact: '', status: 'not_started' }
@@ -434,7 +411,7 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
                       });
                     }
                   }}
-                  disabled={(nomination.supportLetters || []).length >= 5}
+                  disabled={(localNomination.supportLetters || []).length >= 5}
                   className="cursor-pointer"
                 >
                   <Plus className="h-4 w-4 mr-1" />
@@ -443,10 +420,10 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              {(!nomination.supportLetters || nomination.supportLetters.length === 0) ? (
+              {(!localNomination.supportLetters || localNomination.supportLetters.length === 0) ? (
                 <p className="text-sm text-muted-foreground">No support letters added yet. Click "Add Letter" to add up to 5.</p>
               ) : (
-                nomination.supportLetters.map((letter, index) => (
+                localNomination.supportLetters.map((letter, index) => (
                   <div key={index} className="border rounded-lg p-4 space-y-3">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-medium">Letter {index + 1}</span>
@@ -454,7 +431,7 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
                         variant="ghost"
                         size="sm"
                         onClick={() => {
-                          const updatedLetters = nomination.supportLetters?.filter((_, i) => i !== index) || [];
+                          const updatedLetters = localNomination.supportLetters?.filter((_, i) => i !== index) || [];
                           handleUpdate({ supportLetters: updatedLetters });
                         }}
                         className="cursor-pointer"
@@ -469,9 +446,9 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
                           id={`support-name-${index}`}
                           value={letter.name}
                           onChange={(e) => {
-                            const updatedLetters = [...(nomination.supportLetters || [])];
+                            const updatedLetters = [...(localNomination.supportLetters || [])];
                             updatedLetters[index] = { ...letter, name: e.target.value };
-                            setNomination({ ...nomination, supportLetters: updatedLetters });
+                            setLocalNomination({ ...localNomination, supportLetters: updatedLetters });
                           }}
                           placeholder="Writer's name"
                         />
@@ -482,9 +459,9 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
                           id={`support-contact-${index}`}
                           value={letter.contact}
                           onChange={(e) => {
-                            const updatedLetters = [...(nomination.supportLetters || [])];
+                            const updatedLetters = [...(localNomination.supportLetters || [])];
                             updatedLetters[index] = { ...letter, contact: e.target.value };
-                            setNomination({ ...nomination, supportLetters: updatedLetters });
+                            setLocalNomination({ ...localNomination, supportLetters: updatedLetters });
                           }}
                           placeholder="Email or phone"
                         />
@@ -495,9 +472,9 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
                       <Select
                         value={letter.status}
                         onValueChange={(value) => {
-                          const updatedLetters = [...(nomination.supportLetters || [])];
+                          const updatedLetters = [...(localNomination.supportLetters || [])];
                           updatedLetters[index] = { ...letter, status: value as SupportLetter['status'] };
-                          setNomination({ ...nomination, supportLetters: updatedLetters });
+                          setLocalNomination({ ...localNomination, supportLetters: updatedLetters });
                         }}
                       >
                         <SelectTrigger id={`support-status-${index}`}>
@@ -513,8 +490,8 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
                   </div>
                 ))
               )}
-              {nomination.supportLetters && nomination.supportLetters.length > 0 && (
-                <Button onClick={() => handleUpdate({ supportLetters: nomination.supportLetters })} disabled={saving} className="w-full cursor-pointer">
+              {localNomination.supportLetters && localNomination.supportLetters.length > 0 && (
+                <Button onClick={() => handleUpdate({ supportLetters: localNomination.supportLetters })} disabled={saving} className="w-full cursor-pointer">
                   <Save className="mr-2 h-4 w-4" />
                   Save Support Letters
                 </Button>
@@ -534,7 +511,7 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
                   <FileUpload
                     nominationId={id}
                     files={files}
-                    onFilesChange={fetchFiles}
+                    onFilesChange={() => refetchFiles()}
                   />
                 </CardContent>
               </Card>
@@ -545,12 +522,12 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <Textarea
-                    value={nomination.notes || ''}
-                    onChange={(e) => setNomination({ ...nomination, notes: e.target.value })}
+                    value={localNomination.notes || ''}
+                    onChange={(e) => setLocalNomination({ ...localNomination, notes: e.target.value })}
                     className="min-h-[150px]"
                     placeholder="Add notes about this nomination, including file links, contacts, etc."
                   />
-                  <Button onClick={() => handleUpdate(nomination)} disabled={saving} className="cursor-pointer">
+                  <Button onClick={() => handleUpdate(localNomination)} disabled={saving} className="cursor-pointer">
                     <Save className="mr-2 h-4 w-4" />
                     Save Notes
                   </Button>
