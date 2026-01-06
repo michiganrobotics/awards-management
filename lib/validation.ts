@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { VALIDATION_LIMITS, NOMINATION_STATUS, LETTER_STATUS, SUPPORT_LETTER_STATUS } from './constants';
+import { logger } from './logger';
 
 // Nomination validation schema
 export const nominationSchema = z.object({
@@ -120,7 +121,7 @@ export function validateNomination(data: unknown) {
 
 export function validateNominationUpdate(data: unknown) {
   // Preprocess data to remove empty strings and fix invalid enum values
-  console.log('validateNominationUpdate - Raw data:', JSON.stringify(data));
+  logger.debug('validateNominationUpdate - Raw data', { data });
 
   if (typeof data === 'object' && data !== null) {
     const entries = Object.entries(data);
@@ -135,7 +136,7 @@ export function validateNominationUpdate(data: unknown) {
       });
 
     const cleanData = Object.fromEntries(cleanedEntries);
-    console.log('validateNominationUpdate - Cleaned data:', JSON.stringify(cleanData));
+    logger.debug('validateNominationUpdate - Cleaned data', { cleanData });
     return nominationUpdateSchema.parse(cleanData);
   }
 

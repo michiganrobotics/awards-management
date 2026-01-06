@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth, isDevelopment } from './auth';
 import { ZodError } from 'zod';
+import { logger } from './logger';
 
 export interface ApiError {
   error: string;
@@ -46,7 +47,7 @@ export function withErrorHandling<T>(
  * Centralized error handler for API routes
  */
 export function handleApiError(error: unknown): NextResponse<ApiError> {
-  console.error('API Error:', error);
+  logger.error('API Error', error);
 
   // Zod validation errors
   if (error instanceof ZodError) {
@@ -88,7 +89,7 @@ export function safeJsonParse<T>(value: string | null | undefined, fallback: T):
   try {
     return JSON.parse(value) as T;
   } catch (error) {
-    console.error('JSON parse error:', error, 'Value:', value);
+    logger.error('JSON parse error', error, { value });
     return fallback;
   }
 }

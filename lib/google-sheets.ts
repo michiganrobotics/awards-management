@@ -4,6 +4,7 @@ import { Award, Nomination } from './types';
 import { safeJsonParse } from './api-utils';
 import { AWARD_COLUMNS, NOMINATION_COLUMNS } from './constants';
 import { randomUUID } from 'crypto';
+import { logger } from './logger';
 
 // Initialize auth
 const SCOPES = [
@@ -290,13 +291,12 @@ export async function updateNomination(id: string, updates: Partial<Nomination>)
   const doc = await getSpreadsheet();
   const sheet = doc.sheetsByTitle['Nominations'];
   if (!sheet) {
-    console.error('updateNomination: Nominations sheet not found');
+    logger.error('updateNomination: Nominations sheet not found');
     return null;
   }
 
   const rows = await sheet.getRows();
-  console.log('updateNomination: Looking for ID:', id);
-  console.log('updateNomination: Available IDs:', rows.map(r => r.get('id')).slice(0, 5));
+  logger.debug('updateNomination: Looking for ID', { id, availableIds: rows.map(r => r.get('id')).slice(0, 5) });
 
   // Find row by ID, or if ID starts with "nomination-row-", find by row number
   let row = rows.find((r) => r.get('id') === id);
@@ -306,7 +306,7 @@ export async function updateNomination(id: string, updates: Partial<Nomination>)
     const rowNumber = parseInt(id.replace('nomination-row-', ''), 10);
     if (!isNaN(rowNumber)) {
       row = rows.find((r) => r.rowNumber === rowNumber);
-      console.log('updateNomination: Found row by row number:', rowNumber);
+      logger.debug('updateNomination: Found row by row number', { rowNumber });
     }
 
     // If we found it by row number, set the proper UUID ID now
@@ -314,12 +314,12 @@ export async function updateNomination(id: string, updates: Partial<Nomination>)
       const newId = `nomination-${randomUUID()}`;
       row.set('id', newId);
       actualId = newId; // Track the new ID for return
-      console.log('updateNomination: Backfilling ID:', newId);
+      logger.debug('updateNomination: Backfilling ID', { newId });
     }
   }
 
   if (!row) {
-    console.error('updateNomination: Row not found for ID:', id);
+    logger.error('updateNomination: Row not found for ID', undefined, { id });
     return null;
   }
 
@@ -376,12 +376,12 @@ export async function deleteNomination(id: string): Promise<boolean> {
   const doc = await getSpreadsheet();
   const sheet = doc.sheetsByTitle['Nominations'];
   if (!sheet) {
-    console.error('deleteNomination: Nominations sheet not found');
+    logger.error('deleteNomination: Nominations sheet not found');
     return false;
   }
 
   const rows = await sheet.getRows();
-  console.log('deleteNomination: Looking for ID:', id);
+  logger.debug('deleteNomination: Looking for ID', { id });
 
   // Find row by ID, or if ID starts with "nomination-row-", find by row number
   let row = rows.find((r) => r.get('id') === id);
@@ -390,16 +390,16 @@ export async function deleteNomination(id: string): Promise<boolean> {
     const rowNumber = parseInt(id.replace('nomination-row-', ''), 10);
     if (!isNaN(rowNumber)) {
       row = rows.find((r) => r.rowNumber === rowNumber);
-      console.log('deleteNomination: Found row by row number:', rowNumber);
+      logger.debug('deleteNomination: Found row by row number', { rowNumber });
     }
   }
 
   if (!row) {
-    console.error('deleteNomination: Row not found for ID:', id);
+    logger.error('deleteNomination: Row not found for ID', undefined, { id });
     return false;
   }
 
   await row.delete();
-  console.log('deleteNomination: Successfully deleted nomination:', id);
+  logger.info('deleteNomination: Successfully deleted nomination', { id });
   return true;
 }

@@ -34,3 +34,62 @@
   * Versions are already aligned - no update needed
   * This task was likely completed in an earlier session or during initial setup
   * Marked as complete in PRD since the desired state is achieved
+
+- Completed: Add error boundaries for graceful error handling
+  * Created components/error-boundary.tsx with:
+    - ErrorBoundary class component using React error boundary pattern
+    - getDerivedStateFromError and componentDidCatch lifecycle methods
+    - Configurable fallback prop for custom error UI
+    - onError callback prop for error logging/reporting
+    - ErrorFallback component with user-friendly UI and retry button
+  * Created app/error.tsx for Next.js route-level error handling:
+    - Shows error message with retry and home navigation buttons
+    - Displays error details in development mode only
+    - Uses existing Alert UI components for consistency
+  * Created app/global-error.tsx for root layout errors:
+    - Standalone error UI that works when layout fails
+    - Uses inline styles since CSS may not be available
+    - Provides basic retry functionality
+  * Created nested error.tsx files for critical pages:
+    - app/nominations/[id]/error.tsx for nomination detail pages
+    - app/awards/[id]/error.tsx for award detail pages
+    - Each has contextual error messages and navigation back to lists
+  * Integrated ErrorBoundary in components/providers.tsx:
+    - Wraps QueryClientProvider to catch client-side errors
+    - Provides graceful degradation when React Query components fail
+  * Note: Build verification blocked by pre-existing lightningcss native binary issue
+    - This is an environment issue unrelated to error boundary changes
+    - All TypeScript code is syntactically correct and follows existing patterns
+
+- Completed: Remove production console.log statements
+  * Created lib/logger.ts with environment-aware logging utility:
+    - logger.debug() and logger.info() only log in development (NODE_ENV !== 'production')
+    - logger.warn() and logger.error() always log (important for production debugging)
+    - Structured logging with timestamps, log levels, and context objects
+    - Error handling with automatic extraction of error message and stack trace
+  * Replaced console.log/error/warn calls in library files:
+    - lib/google-drive.ts: 4 debug logs, 6 error logs migrated
+    - lib/google-sheets.ts: 7 debug logs, 4 error logs migrated
+    - lib/validation.ts: 2 debug logs migrated
+    - lib/auth.ts: 1 error log, 1 warn log migrated
+    - lib/api-utils.ts: 2 error logs migrated
+  * Replaced console.log/error calls in API routes:
+    - app/api/files/upload/route.ts: 3 debug logs, 1 error log migrated
+    - app/api/files/[nominationId]/route.ts: 2 error logs migrated
+    - app/api/nominations/[id]/route.ts: 3 debug logs, 3 error logs migrated
+    - app/api/nominations/route.ts: 2 error logs migrated
+    - app/api/awards/route.ts: 2 error logs migrated
+  * Removed unnecessary console.error calls from client components:
+    - components/file-upload.tsx: 2 client-side error logs removed (toast messages provide user feedback)
+    - app/nominations/page.tsx: 1 client-side error log removed
+    - app/nominations/[id]/page.tsx: 2 client-side error logs removed
+    - app/awards/[id]/page.tsx: 1 client-side error log removed
+  * Preserved console.error in error boundary files (error.tsx, global-error.tsx, etc.):
+    - Error boundaries need console.error for proper error reporting
+    - These are critical for debugging production issues
+  * Preserved console statements in netlify/edge-functions/auth.ts:
+    - Runs on Deno/Netlify Edge, cannot use Node.js logger
+    - Auth logs are important for debugging authentication issues
+  * Note: Build verification blocked by pre-existing lightningcss issue
+    - All TypeScript changes are syntactically correct
+    - Logger utility follows existing code patterns

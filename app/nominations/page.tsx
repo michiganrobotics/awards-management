@@ -28,8 +28,7 @@ export default function NominationsPage() {
       const awardsData = await awardsRes.json();
       setNominations(Array.isArray(nominationsData) ? nominationsData : []);
       setAwards(Array.isArray(awardsData) ? awardsData : []);
-    } catch (error) {
-      console.error('Error fetching data:', error);
+    } catch {
       setNominations([]);
       setAwards([]);
     } finally {

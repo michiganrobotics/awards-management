@@ -11,7 +11,7 @@
         "Replace console.log calls with logging utility",
         "Ensure critical errors still logged appropriately"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "code-quality",
@@ -45,7 +45,7 @@
         "Add page-level error boundaries for critical sections",
         "Display user-friendly error messages"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "accessibility",
@@ -257,6 +257,29 @@
         "Implement CSV export for awards list",
         "Implement CSV export for nominations list",
         "Consider Excel export option"
+      ],
+      "passes": false
+    },
+    {
+      "category": "ux",
+      "description": "Fix scroll in sponsor dropdown",
+      "steps": [
+        "Identify why sponsor dropdown doesn't scroll properly",
+        "Add max-height and overflow styles to SelectContent",
+        "Ensure long lists of sponsors are scrollable",
+        "Test with many sponsor options"
+      ],
+      "passes": false
+    },
+    {
+      "category": "ux",
+      "description": "Fix deadline dropdown to group by months and types",
+      "steps": [
+        "Update deadline filter to group values into months",
+        "Add separate group for non-date types (rolling, floating, ongoing)",
+        "Display specific days as month groups instead of individual entries",
+        "Update filtering logic to work with grouped values",
+        "Add visual separators between groups in dropdown"
       ],
       "passes": false
     }

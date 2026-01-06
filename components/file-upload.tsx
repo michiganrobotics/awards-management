@@ -52,8 +52,7 @@ export function FileUpload({ nominationId, files, onFilesChange }: FileUploadPro
         const error = await response.json();
         toast.error(`Upload failed: ${error.error}`);
       }
-    } catch (error) {
-      console.error('Error uploading file:', error);
+    } catch {
       toast.error('Failed to upload file');
     } finally {
       setUploading(false);
@@ -75,8 +74,7 @@ export function FileUpload({ nominationId, files, onFilesChange }: FileUploadPro
       } else {
         toast.error('Failed to delete file');
       }
-    } catch (error) {
-      console.error('Error deleting file:', error);
+    } catch {
       toast.error('Failed to delete file');
     } finally {
       setFileToDelete(null);

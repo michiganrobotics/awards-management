@@ -4,6 +4,7 @@ import { getNominations, updateNomination, getAwards } from '@/lib/google-sheets
 import { withAuth } from '@/lib/api-utils';
 import { VALIDATION_LIMITS, FILE_CATEGORY } from '@/lib/constants';
 import type { ApiError } from '@/lib/types';
+import { logger } from '@/lib/logger';
 
 export const POST = withAuth(async (request: NextRequest) => {
   try {
@@ -69,9 +70,9 @@ export const POST = withAuth(async (request: NextRequest) => {
     let folderId = nomination.driveFolderId;
     if (!folderId) {
       const folderName = `${nomination.candidateName} - ${nomination.nominationYear} - ${awardName}`;
-      console.log('Attempting to create folder:', folderName);
+      logger.debug('Attempting to create folder', { folderName });
       folderId = await createFolder(folderName);
-      console.log('Folder created successfully:', folderId);
+      logger.debug('Folder created successfully', { folderId });
 
       // Update nomination with folder ID
       await updateNomination(nominationId, { driveFolderId: folderId });
@@ -92,7 +93,7 @@ export const POST = withAuth(async (request: NextRequest) => {
     const newFileName = `${baseName}${categoryTag}${fileExtension}`;
 
     // Upload file to the nomination's folder
-    console.log('Uploading file to folder:', folderId);
+    logger.debug('Uploading file to folder', { folderId, fileName: newFileName });
     const uploadedFile = await uploadFile(newFileName, file.type, buffer, folderId);
 
     return NextResponse.json({
@@ -109,8 +110,7 @@ export const POST = withAuth(async (request: NextRequest) => {
     });
   } catch (error) {
     const apiError = error as ApiError;
-    console.error('Error uploading file:', apiError);
-    console.error('Error details:', apiError.message, apiError.stack);
+    logger.error('Error uploading file', apiError, { stack: apiError.stack });
     return NextResponse.json(
       { error: `Failed to upload file: ${apiError.message}` },
       { status: 500 }

@@ -71,8 +71,7 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
       // Update local state optimistically
       setLocalNomination({ ...localNomination, ...updates });
       toast.success('Nomination updated successfully!');
-    } catch (error) {
-      console.error('Error updating nomination:', error);
+    } catch {
       toast.error('Failed to update nomination');
     } finally {
       setSaving(false);
@@ -93,8 +92,7 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
       } else {
         toast.error('Failed to delete nomination');
       }
-    } catch (error) {
-      console.error('Error deleting nomination:', error);
+    } catch {
       toast.error('Failed to delete nomination');
     }
   }, [localNomination, id, router]);

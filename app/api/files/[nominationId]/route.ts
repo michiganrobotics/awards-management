@@ -3,6 +3,7 @@ import { listFiles, deleteFile } from '@/lib/google-drive';
 import { getNominations } from '@/lib/google-sheets';
 import { withAuth } from '@/lib/api-utils';
 import type { ApiError } from '@/lib/types';
+import { logger } from '@/lib/logger';
 
 export const GET = withAuth(async (
   request: NextRequest,
@@ -32,7 +33,7 @@ export const GET = withAuth(async (
 
     return NextResponse.json({ files });
   } catch (error) {
-    console.error('Error listing files:', error);
+    logger.error('Error listing files', error);
     return NextResponse.json(
       { error: 'Failed to list files' },
       { status: 500 }
@@ -61,7 +62,7 @@ export const DELETE = withAuth(async (
     return NextResponse.json({ success: true });
   } catch (error) {
     const apiError = error as ApiError;
-    console.error('Error deleting file:', apiError);
+    logger.error('Error deleting file', apiError);
     // If file not found (404), treat as success since it's already gone
     if (apiError.message?.includes('File not found') || apiError.message?.includes('404')) {
       return NextResponse.json({ success: true, message: 'File already deleted' });

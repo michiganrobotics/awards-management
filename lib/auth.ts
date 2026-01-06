@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { jwtVerify, createRemoteJWKSet, JWTPayload } from 'jose';
+import { logger } from './logger';
 
 const OIDC_CONFIG = {
   issuer: 'https://shibboleth.umich.edu',
@@ -51,7 +52,7 @@ export async function verifyAuth(request: NextRequest): Promise<AuthUser | null>
 
     return payload as AuthUser;
   } catch (error) {
-    console.error('Token verification failed:', error);
+    logger.error('Token verification failed', error);
     return null;
   }
 }
@@ -84,7 +85,7 @@ export function isDevelopment(): boolean {
 
   // Log warning when auth is bypassed
   if (isDev) {
-    console.warn('⚠️  AUTH BYPASSED - Development mode active');
+    logger.warn('AUTH BYPASSED - Development mode active');
   }
 
   return isDev;

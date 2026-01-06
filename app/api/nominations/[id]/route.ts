@@ -3,6 +3,7 @@ import { getNominationById, updateNomination, deleteNomination } from '@/lib/goo
 import { withAuth } from '@/lib/api-utils';
 import { validateNominationUpdate } from '@/lib/validation';
 import { ZodError } from 'zod';
+import { logger } from '@/lib/logger';
 
 export const GET = withAuth(async (
   request: NextRequest,
@@ -25,7 +26,7 @@ export const GET = withAuth(async (
 
     return NextResponse.json(nomination);
   } catch (error) {
-    console.error('Error fetching nomination:', error);
+    logger.error('Error fetching nomination', error);
     return NextResponse.json(
       { error: 'Failed to fetch nomination' },
       { status: 500 }
@@ -39,11 +40,11 @@ export const PATCH = withAuth(async (
 ) => {
   try {
     if (!context?.params) {
-      console.error('PATCH: Missing context or params');
+      logger.error('PATCH: Missing context or params');
       return NextResponse.json({ error: 'Invalid request - missing params' }, { status: 400 });
     }
     const { id } = await context.params;
-    console.log('PATCH: Updating nomination with ID:', id);
+    logger.debug('PATCH: Updating nomination', { id });
     const body = await request.json();
 
     // Validate input
@@ -61,7 +62,7 @@ export const PATCH = withAuth(async (
 
     return NextResponse.json(nomination);
   } catch (error) {
-    console.error('Error updating nomination:', error);
+    logger.error('Error updating nomination', error);
 
     if (error instanceof ZodError) {
       return NextResponse.json(
@@ -89,11 +90,11 @@ export const DELETE = withAuth(async (
 ) => {
   try {
     if (!context?.params) {
-      console.error('DELETE: Missing context or params');
+      logger.error('DELETE: Missing context or params');
       return NextResponse.json({ error: 'Invalid request - missing params' }, { status: 400 });
     }
     const { id } = await context.params;
-    console.log('DELETE: Deleting nomination with ID:', id);
+    logger.debug('DELETE: Deleting nomination', { id });
 
     const success = await deleteNomination(id);
 
@@ -106,7 +107,7 @@ export const DELETE = withAuth(async (
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error deleting nomination:', error);
+    logger.error('Error deleting nomination', error);
     return NextResponse.json(
       { error: 'Failed to delete nomination' },
       { status: 500 }

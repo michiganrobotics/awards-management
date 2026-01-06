@@ -63,8 +63,7 @@ export default function AwardDetailPage({ params }: { params: Promise<{ id: stri
         nominationYear: new Date().getFullYear(),
       });
       toast.success('Nomination added successfully!');
-    } catch (error) {
-      console.error('Error adding nomination:', error);
+    } catch {
       toast.error('Failed to add nomination');
     }
   }, [createNominationMutation, newNomination, id]);

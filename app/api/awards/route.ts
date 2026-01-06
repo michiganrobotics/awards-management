@@ -3,13 +3,14 @@ import { getAwards, addAward } from '@/lib/google-sheets';
 import { withAuth } from '@/lib/api-utils';
 import { validateAward } from '@/lib/validation';
 import { ZodError } from 'zod';
+import { logger } from '@/lib/logger';
 
 export const GET = withAuth(async () => {
   try {
     const awards = await getAwards();
     return NextResponse.json(awards);
   } catch (error) {
-    console.error('Error fetching awards:', error);
+    logger.error('Error fetching awards', error);
     return NextResponse.json(
       { error: 'Failed to fetch awards' },
       { status: 500 }
@@ -28,7 +29,7 @@ export const POST = withAuth(async (request: NextRequest) => {
     const award = await addAward(validatedData);
     return NextResponse.json(award, { status: 201 });
   } catch (error) {
-    console.error('Error creating award:', error);
+    logger.error('Error creating award', error);
 
     if (error instanceof ZodError) {
       return NextResponse.json(

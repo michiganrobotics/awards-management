@@ -1,6 +1,7 @@
 import { google } from 'googleapis';
 import { Readable } from 'stream';
 import type { ApiError, GoogleDriveFileMetadata, GoogleDriveRequestParams } from './types';
+import { logger } from './logger';
 
 const auth = new google.auth.GoogleAuth({
   credentials: {
@@ -66,11 +67,10 @@ export async function uploadFile(
     return response.data as DriveFile;
   } catch (error) {
     const apiError = error as ApiError;
-    console.error('Error uploading file to Drive:', apiError);
-    console.error('Error details:', apiError.message);
-    if (apiError.response) {
-      console.error('API Response:', apiError.response.status, apiError.response.data);
-    }
+    logger.error('Error uploading file to Drive', apiError, {
+      responseStatus: apiError.response?.status,
+      responseData: apiError.response?.data,
+    });
     throw apiError;
   }
 }
@@ -87,7 +87,7 @@ async function getSharedDriveId(folderId: string): Promise<string | undefined> {
     });
     return response.data.driveId || undefined;
   } catch (error) {
-    console.error('Error getting shared drive ID:', error);
+    logger.error('Error getting shared drive ID', error);
     return undefined;
   }
 }
@@ -101,7 +101,7 @@ export async function createFolder(folderName: string, parentFolderId?: string):
 
     // Get the shared drive ID from the parent folder
     const driveId = await getSharedDriveId(parentId);
-    console.log('Shared Drive ID:', driveId);
+    logger.debug('Shared Drive ID', { driveId });
 
     const fileMetadata = {
       name: folderName,
@@ -122,7 +122,7 @@ export async function createFolder(folderName: string, parentFolderId?: string):
 
     const response = await drive.files.create(requestParams);
 
-    console.log('Created folder:', response.data);
+    logger.debug('Created folder', { folderId: response.data.id, driveId: response.data.driveId });
 
     // Check the folder's capabilities
     const folderInfo = await drive.files.get({
@@ -131,16 +131,15 @@ export async function createFolder(folderName: string, parentFolderId?: string):
       supportsAllDrives: true,
     });
 
-    console.log('Folder capabilities:', folderInfo.data);
+    logger.debug('Folder capabilities', { capabilities: folderInfo.data });
 
     return response.data.id!;
   } catch (error) {
     const apiError = error as ApiError;
-    console.error('Error creating folder:', apiError);
-    console.error('Error details:', apiError.message);
-    if (apiError.response) {
-      console.error('API Response:', apiError.response.status, apiError.response.data);
-    }
+    logger.error('Error creating folder', apiError, {
+      responseStatus: apiError.response?.status,
+      responseData: apiError.response?.data,
+    });
     throw apiError;
   }
 }
@@ -178,7 +177,7 @@ export async function listFiles(folderId?: string): Promise<DriveFile[]> {
 
     return (response.data.files || []) as DriveFile[];
   } catch (error) {
-    console.error('Error listing files:', error);
+    logger.error('Error listing files', error);
     throw new Error('Failed to list files');
   }
 }
@@ -194,7 +193,7 @@ export async function deleteFile(fileId: string): Promise<void> {
       fields: 'id, name, parents, driveId',
       supportsAllDrives: true,
     });
-    console.log('File found:', file.data);
+    logger.debug('File found for deletion', { fileId: file.data.id, fileName: file.data.name });
 
     // For Shared Drive files, we need to use update to trash them
     // Direct delete doesn't work reliably on Shared Drives
@@ -207,11 +206,10 @@ export async function deleteFile(fileId: string): Promise<void> {
     });
   } catch (error) {
     const apiError = error as ApiError;
-    console.error('Error deleting file:', apiError);
-    console.error('Error details:', apiError.message, apiError.code);
-    if (apiError.response?.data) {
-      console.error('Error response data:', JSON.stringify(apiError.response.data, null, 2));
-    }
+    logger.error('Error deleting file', apiError, {
+      code: apiError.code,
+      responseData: apiError.response?.data,
+    });
     throw new Error(`Failed to delete file: ${apiError.message}`);
   }
 }
@@ -228,7 +226,7 @@ export async function getFile(fileId: string): Promise<DriveFile> {
 
     return response.data as DriveFile;
   } catch (error) {
-    console.error('Error getting file:', error);
+    logger.error('Error getting file', error);
     throw new Error('Failed to get file');
   }
 }
@@ -246,7 +244,7 @@ export async function makeFilePublic(fileId: string): Promise<void> {
       },
     });
   } catch (error) {
-    console.error('Error making file public:', error);
+    logger.error('Error making file public', error);
     throw new Error('Failed to make file public');
   }
 }
