@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useState, useMemo } from 'react';
+import { use, useState, useMemo, useCallback } from 'react';
 import { Nomination } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -47,7 +47,7 @@ export default function AwardDetailPage({ params }: { params: Promise<{ id: stri
     nominationYear: new Date().getFullYear(),
   });
 
-  const handleAddNomination = async () => {
+  const handleAddNomination = useCallback(async () => {
     try {
       await createNominationMutation.mutateAsync({
         ...newNomination,
@@ -68,9 +68,9 @@ export default function AwardDetailPage({ params }: { params: Promise<{ id: stri
       console.error('Error adding nomination:', error);
       toast.error('Failed to add nomination');
     }
-  };
+  }, [createNominationMutation, newNomination, id]);
 
-  const getStatusBadge = (status: Nomination['status']) => {
+  const getStatusBadge = useCallback((status: Nomination['status']) => {
     const variants: Record<Nomination['status'], 'default' | 'secondary' | 'destructive' | 'outline'> = {
       pending: 'outline',
       submitted: 'default',
@@ -93,7 +93,7 @@ export default function AwardDetailPage({ params }: { params: Promise<{ id: stri
     }
 
     return <Badge variant={variants[status]} className={className}>{status}</Badge>;
-  };
+  }, []);
 
   if (loading) {
     return (

@@ -225,6 +225,11 @@ export async function getNominations(): Promise<Nomination[]> {
   });
 }
 
+export async function getNominationById(id: string): Promise<Nomination | null> {
+  const nominations = await getNominations();
+  return nominations.find((nomination) => nomination.id === id) || null;
+}
+
 export async function addNomination(nomination: Omit<Nomination, 'id' | 'createdAt' | 'updatedAt'>): Promise<Nomination> {
   const doc = await getSpreadsheet();
   const sheet = await ensureSheet(doc, 'Nominations', NOMINATION_COLUMNS);
@@ -334,11 +339,37 @@ export async function updateNomination(id: string, updates: Partial<Nomination>)
     }
   });
 
-  row.set('updatedAt', new Date().toISOString());
+  const updatedAt = new Date().toISOString();
+  row.set('updatedAt', updatedAt);
   await row.save();
 
-  const nominations = await getNominations();
-  return nominations.find((n) => n.id === actualId) || null;
+  // Return the updated nomination directly from the row data instead of re-fetching all nominations
+  const yearStr = row.get('nominationYear') || new Date().getFullYear().toString();
+  const nominationYear = parseInt(yearStr, 10);
+  const supportLettersCountStr = row.get('supportLettersCount') || '0';
+  const supportLettersCount = parseInt(supportLettersCountStr, 10);
+
+  return {
+    id: actualId,
+    awardId: row.get('awardId') || '',
+    candidateName: row.get('candidateName') || '',
+    nominatedBy: row.get('nominatedBy') || '',
+    nominationYear: isNaN(nominationYear) ? new Date().getFullYear() : nominationYear,
+    status: (row.get('status') || 'pending') as Nomination['status'],
+    letterStatus: (row.get('letterStatus') || 'not_started') as Nomination['letterStatus'],
+    letterWriterName: row.get('letterWriterName') || undefined,
+    letterWriterContact: row.get('letterWriterContact') || undefined,
+    supportLettersStatus: (row.get('supportLettersStatus') || 'not_started') as Nomination['supportLettersStatus'],
+    supportLetters: safeJsonParse(row.get('supportLetters'), []),
+    supportLettersCount: isNaN(supportLettersCount) ? 0 : supportLettersCount,
+    packageFiles: safeJsonParse(row.get('packageFiles'), []),
+    driveFolderId: row.get('driveFolderId') || undefined,
+    deadlineDate: row.get('deadlineDate') || undefined,
+    submissionDate: row.get('submissionDate') || undefined,
+    notes: row.get('notes') || undefined,
+    createdAt: row.get('createdAt') || updatedAt,
+    updatedAt: updatedAt,
+  };
 }
 
 export async function deleteNomination(id: string): Promise<boolean> {

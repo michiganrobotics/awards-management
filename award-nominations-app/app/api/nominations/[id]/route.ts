@@ -1,8 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { updateNomination, deleteNomination } from '@/lib/google-sheets';
+import { getNominationById, updateNomination, deleteNomination } from '@/lib/google-sheets';
 import { withAuth } from '@/lib/api-utils';
 import { validateNominationUpdate } from '@/lib/validation';
 import { ZodError } from 'zod';
+
+export const GET = withAuth(async (
+  request: NextRequest,
+  context?: { params: Promise<{ id: string }> }
+) => {
+  try {
+    if (!context?.params) {
+      return NextResponse.json({ error: 'Invalid request - missing params' }, { status: 400 });
+    }
+    const { id } = await context.params;
+
+    const nomination = await getNominationById(id);
+
+    if (!nomination) {
+      return NextResponse.json(
+        { error: 'Nomination not found' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(nomination);
+  } catch (error) {
+    console.error('Error fetching nomination:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch nomination' },
+      { status: 500 }
+    );
+  }
+});
 
 export const PATCH = withAuth(async (
   request: NextRequest,

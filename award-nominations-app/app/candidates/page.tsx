@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Nomination, Award } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -61,7 +61,7 @@ export default function CandidatesPage() {
     );
   }, [candidates, searchTerm]);
 
-  const getStatusColor = (status: Nomination['status']) => {
+  const getStatusColor = useCallback((status: Nomination['status']) => {
     switch (status) {
       case 'successful':
         return 'default';
@@ -72,7 +72,7 @@ export default function CandidatesPage() {
       default:
         return 'outline';
     }
-  };
+  }, []);
 
   if (loading) {
     return (

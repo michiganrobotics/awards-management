@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { FilterOptions, Award } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -20,7 +20,7 @@ export default function Dashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
-  const parseDeadline = (deadlineStr: string) => {
+  const parseDeadline = useCallback((deadlineStr: string) => {
     if (!deadlineStr) return null;
 
     const lowerDeadline = deadlineStr.toLowerCase();
@@ -63,7 +63,7 @@ export default function Dashboard() {
 
     // If we can't parse it, return null (treats it like rolling/floating)
     return null;
-  };
+  }, []);
 
   // Use useMemo to avoid re-creating filter function on every render
   const filteredAwards = useMemo(() => {
@@ -115,7 +115,7 @@ export default function Dashboard() {
     return filtered;
   }, [awards, filters, searchTerm, sortOrder]);
 
-  const uniqueValues = (field: keyof Award): string[] => {
+  const uniqueValues = useCallback((field: keyof Award): string[] => {
     return Array.from(
       new Set(
         awards
@@ -123,7 +123,7 @@ export default function Dashboard() {
           .filter((value): value is string => Boolean(value) && typeof value === 'string')
       )
     );
-  };
+  }, [awards]);
 
   if (loading) {
     return (

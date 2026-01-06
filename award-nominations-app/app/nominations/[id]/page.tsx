@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useState, useMemo } from 'react';
+import { use, useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Nomination, SupportLetter } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,26 +27,20 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { useNominations, useUpdateNomination, useNominationFiles } from '@/hooks/use-nominations';
+import { useNomination, useUpdateNomination, useNominationFiles } from '@/hooks/use-nominations';
 import { useAwards } from '@/hooks/use-awards';
 
 export default function NominationDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
 
-  // Use React Query hooks
-  const { data: nominations = [], isLoading: nominationsLoading } = useNominations();
+  // Use React Query hooks - fetch single nomination directly instead of filtering from all
+  const { data: nomination, isLoading: nominationLoading } = useNomination(id);
   const { data: awards = [], isLoading: awardsLoading } = useAwards();
   const { data: files = [], refetch: refetchFiles } = useNominationFiles(id);
   const updateNominationMutation = useUpdateNomination(id);
 
-  // Find the current nomination from the cached data
-  const nomination = useMemo(() =>
-    nominations.find((n) => n.id === id) || null,
-    [nominations, id]
-  );
-
-  const loading = nominationsLoading || awardsLoading;
+  const loading = nominationLoading || awardsLoading;
   const [localNomination, setLocalNomination] = useState<Nomination | null>(null);
 
   // Find the award after localNomination is declared
@@ -63,7 +57,7 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
     }
   }, [nomination, localNomination]);
 
-  const handleUpdate = async (updates: Partial<Nomination>) => {
+  const handleUpdate = useCallback(async (updates: Partial<Nomination>) => {
     if (!localNomination) return;
 
     // Auto-complete letter and support letter statuses when nomination is finalized
@@ -84,9 +78,9 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
     } finally {
       setSaving(false);
     }
-  };
+  }, [localNomination, updateNominationMutation]);
 
-  const handleDelete = async () => {
+  const handleDelete = useCallback(async () => {
     if (!localNomination) return;
 
     try {
@@ -104,7 +98,7 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
       console.error('Error deleting nomination:', error);
       toast.error('Failed to delete nomination');
     }
-  };
+  }, [localNomination, id, router]);
 
   if (loading) {
     return (
