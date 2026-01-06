@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { listFiles, deleteFile } from '@/lib/google-drive';
 import { getNominations } from '@/lib/google-sheets';
 import { withAuth } from '@/lib/api-utils';
+import type { ApiError } from '@/lib/types';
 
 export const GET = withAuth(async (
   request: NextRequest,
@@ -58,14 +59,15 @@ export const DELETE = withAuth(async (
     await deleteFile(fileId);
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
-    console.error('Error deleting file:', error);
+  } catch (error) {
+    const apiError = error as ApiError;
+    console.error('Error deleting file:', apiError);
     // If file not found (404), treat as success since it's already gone
-    if (error.message?.includes('File not found') || error.message?.includes('404')) {
+    if (apiError.message?.includes('File not found') || apiError.message?.includes('404')) {
       return NextResponse.json({ success: true, message: 'File already deleted' });
     }
     return NextResponse.json(
-      { error: error.message || 'Failed to delete file' },
+      { error: apiError.message || 'Failed to delete file' },
       { status: 500 }
     );
   }

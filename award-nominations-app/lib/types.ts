@@ -78,3 +78,27 @@ export type FilterOptions = {
   priorityRanking?: string;
   search?: string;
 };
+
+// Google Drive API types
+export interface GoogleDriveFileMetadata {
+  name: string;
+  parents: string[];
+  mimeType?: string;
+}
+
+export interface GoogleDriveRequestParams {
+  requestBody: GoogleDriveFileMetadata;
+  fields: string;
+  supportsAllDrives: boolean;
+  driveId?: string;
+}
+
+// Error types
+export interface ApiError extends Error {
+  message: string;
+  code?: string | number;
+  response?: {
+    status: number;
+    data: unknown;
+  };
+}

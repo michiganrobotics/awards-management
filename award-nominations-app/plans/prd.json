@@ -22,7 +22,7 @@
         "Fix 'any' usage in app/api/files/[nominationId]/route.ts",
         "Run TypeScript strict mode to verify no 'any' remains"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "category": "code-quality",

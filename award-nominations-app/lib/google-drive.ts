@@ -1,5 +1,6 @@
 import { google } from 'googleapis';
 import { Readable } from 'stream';
+import type { ApiError, GoogleDriveFileMetadata, GoogleDriveRequestParams } from './types';
 
 const auth = new google.auth.GoogleAuth({
   credentials: {
@@ -36,9 +37,14 @@ export async function uploadFile(
   folderId?: string
 ): Promise<DriveFile> {
   try {
-    const fileMetadata: any = {
+    const targetFolderId = folderId || FOLDER_ID;
+    if (!targetFolderId) {
+      throw new Error('No folder ID provided');
+    }
+
+    const fileMetadata: GoogleDriveFileMetadata = {
       name: fileName,
-      parents: [folderId || FOLDER_ID],
+      parents: [targetFolderId],
     };
 
     // Convert buffer to stream
@@ -58,13 +64,14 @@ export async function uploadFile(
     });
 
     return response.data as DriveFile;
-  } catch (error: any) {
-    console.error('Error uploading file to Drive:', error);
-    console.error('Error details:', error.message);
-    if (error.response) {
-      console.error('API Response:', error.response.status, error.response.data);
+  } catch (error) {
+    const apiError = error as ApiError;
+    console.error('Error uploading file to Drive:', apiError);
+    console.error('Error details:', apiError.message);
+    if (apiError.response) {
+      console.error('API Response:', apiError.response.status, apiError.response.data);
     }
-    throw error;
+    throw apiError;
   }
 }
 
@@ -102,7 +109,7 @@ export async function createFolder(folderName: string, parentFolderId?: string):
       parents: [parentId],
     };
 
-    const requestParams: any = {
+    const requestParams: GoogleDriveRequestParams = {
       requestBody: fileMetadata,
       fields: 'id, driveId',
       supportsAllDrives: true,
@@ -127,13 +134,14 @@ export async function createFolder(folderName: string, parentFolderId?: string):
     console.log('Folder capabilities:', folderInfo.data);
 
     return response.data.id!;
-  } catch (error: any) {
-    console.error('Error creating folder:', error);
-    console.error('Error details:', error.message);
-    if (error.response) {
-      console.error('API Response:', error.response.status, error.response.data);
+  } catch (error) {
+    const apiError = error as ApiError;
+    console.error('Error creating folder:', apiError);
+    console.error('Error details:', apiError.message);
+    if (apiError.response) {
+      console.error('API Response:', apiError.response.status, apiError.response.data);
     }
-    throw error;
+    throw apiError;
   }
 }
 
@@ -197,13 +205,14 @@ export async function deleteFile(fileId: string): Promise<void> {
       },
       supportsAllDrives: true,
     });
-  } catch (error: any) {
-    console.error('Error deleting file:', error);
-    console.error('Error details:', error.message, error.code);
-    if (error.response?.data) {
-      console.error('Error response data:', JSON.stringify(error.response.data, null, 2));
+  } catch (error) {
+    const apiError = error as ApiError;
+    console.error('Error deleting file:', apiError);
+    console.error('Error details:', apiError.message, apiError.code);
+    if (apiError.response?.data) {
+      console.error('Error response data:', JSON.stringify(apiError.response.data, null, 2));
     }
-    throw new Error(`Failed to delete file: ${error.message}`);
+    throw new Error(`Failed to delete file: ${apiError.message}`);
   }
 }
 

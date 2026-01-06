@@ -3,6 +3,7 @@ import { uploadFile, createFolder } from '@/lib/google-drive';
 import { getNominations, updateNomination, getAwards } from '@/lib/google-sheets';
 import { withAuth } from '@/lib/api-utils';
 import { VALIDATION_LIMITS, FILE_CATEGORY } from '@/lib/constants';
+import type { ApiError } from '@/lib/types';
 
 export const POST = withAuth(async (request: NextRequest) => {
   try {
@@ -106,11 +107,12 @@ export const POST = withAuth(async (request: NextRequest) => {
         category,
       },
     });
-  } catch (error: any) {
-    console.error('Error uploading file:', error);
-    console.error('Error details:', error.message, error.stack);
+  } catch (error) {
+    const apiError = error as ApiError;
+    console.error('Error uploading file:', apiError);
+    console.error('Error details:', apiError.message, apiError.stack);
     return NextResponse.json(
-      { error: `Failed to upload file: ${error.message}` },
+      { error: `Failed to upload file: ${apiError.message}` },
       { status: 500 }
     );
   }

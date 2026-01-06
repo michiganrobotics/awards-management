@@ -18,21 +18,37 @@ const REQUIRED_GROUPS = [
   'robotics-staff'
 ];
 
-let JWKS: any = null;
+interface OIDCConfiguration {
+  authorization_endpoint: string;
+  token_endpoint: string;
+  userinfo_endpoint: string;
+  jwks_uri: string;
+  issuer: string;
+}
 
-async function getJWKS(config: any) {
+interface UserInfo {
+  sub: string;
+  email?: string;
+  name?: string;
+  edumember_is_member_of?: string[];
+  groups?: string[];
+}
+
+let JWKS: ReturnType<typeof createRemoteJWKSet> | null = null;
+
+async function getJWKS(config: OIDCConfiguration) {
   if (!JWKS) {
     JWKS = createRemoteJWKSet(new URL(config.jwks_uri));
   }
   return JWKS;
 }
 
-async function getOIDCConfig() {
+async function getOIDCConfig(): Promise<OIDCConfiguration> {
   const response = await fetch(OIDC_CONFIG.discoveryUrl);
   return response.json();
 }
 
-async function getUserInfo(accessToken: string, config: any) {
+async function getUserInfo(accessToken: string, config: OIDCConfiguration): Promise<UserInfo> {
   const response = await fetch(config.userinfo_endpoint, {
     headers: {
       'Authorization': `Bearer ${accessToken}`
