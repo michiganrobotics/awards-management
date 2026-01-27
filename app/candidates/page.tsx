@@ -7,8 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Search, User, Calendar, Award as AwardIcon } from 'lucide-react';
+import { Search, User, Calendar, Trophy } from 'lucide-react';
 import Link from 'next/link';
+import { NavLink } from '@/components/nav-link';
 import { useNominations } from '@/hooks/use-nominations';
 import { useAwards } from '@/hooks/use-awards';
 
@@ -112,18 +113,15 @@ export default function CandidatesPage() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Link href="/" className="cursor-pointer">
-              <Button variant="outline">
-                <AwardIcon className="mr-2 h-4 w-4" />
-                Awards
-              </Button>
-            </Link>
-            <Link href="/nominations" className="cursor-pointer">
-              <Button variant="outline">
-                <Calendar className="mr-2 h-4 w-4" />
-                Nominations
-              </Button>
-            </Link>
+            <NavLink href="/" icon={<Trophy className="mr-2 h-4 w-4" />}>
+              Awards
+            </NavLink>
+            <NavLink href="/nominations" icon={<Calendar className="mr-2 h-4 w-4" />}>
+              Nominations
+            </NavLink>
+            <NavLink href="/candidates" icon={<User className="mr-2 h-4 w-4" />}>
+              Candidates
+            </NavLink>
           </div>
         </div>
 

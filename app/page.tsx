@@ -10,8 +10,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Search, Calendar, User } from 'lucide-react';
+import { Search, Calendar, User, Trophy } from 'lucide-react';
 import Link from 'next/link';
+import { NavLink } from '@/components/nav-link';
 import { useAwards } from '@/hooks/use-awards';
 
 export default function Dashboard() {
@@ -179,18 +180,15 @@ export default function Dashboard() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Link href="/nominations" className="cursor-pointer">
-              <Button variant="outline">
-                <Calendar className="mr-2 h-4 w-4" />
-                Nominations
-              </Button>
-            </Link>
-            <Link href="/candidates" className="cursor-pointer">
-              <Button variant="outline">
-                <User className="mr-2 h-4 w-4" />
-                Candidates
-              </Button>
-            </Link>
+            <NavLink href="/" icon={<Trophy className="mr-2 h-4 w-4" />}>
+              Awards
+            </NavLink>
+            <NavLink href="/nominations" icon={<Calendar className="mr-2 h-4 w-4" />}>
+              Nominations
+            </NavLink>
+            <NavLink href="/candidates" icon={<User className="mr-2 h-4 w-4" />}>
+              Candidates
+            </NavLink>
           </div>
         </div>
 

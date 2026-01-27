@@ -6,8 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Award as AwardIcon, User, Calendar } from 'lucide-react';
+import { Trophy, User, Calendar } from 'lucide-react';
 import Link from 'next/link';
+import { NavLink } from '@/components/nav-link';
 
 export default function NominationsPage() {
   const [nominations, setNominations] = useState<Nomination[]>([]);
@@ -93,18 +94,15 @@ export default function NominationsPage() {
             <p className="text-muted-foreground mt-2">View all nominations across all awards</p>
           </div>
           <div className="flex gap-2">
-            <Link href="/" className="cursor-pointer">
-              <Button variant="outline">
-                <AwardIcon className="mr-2 h-4 w-4" />
-                Awards
-              </Button>
-            </Link>
-            <Link href="/candidates" className="cursor-pointer">
-              <Button variant="outline">
-                <User className="mr-2 h-4 w-4" />
-                Candidates
-              </Button>
-            </Link>
+            <NavLink href="/" icon={<Trophy className="mr-2 h-4 w-4" />}>
+              Awards
+            </NavLink>
+            <NavLink href="/nominations" icon={<Calendar className="mr-2 h-4 w-4" />}>
+              Nominations
+            </NavLink>
+            <NavLink href="/candidates" icon={<User className="mr-2 h-4 w-4" />}>
+              Candidates
+            </NavLink>
           </div>
         </div>
 
