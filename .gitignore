@@ -51,3 +51,7 @@ next-env.d.ts
 venv/
 __pycache__/
 *.py[cod]
+
+# Internal development files
+plans/
+progress.txt
