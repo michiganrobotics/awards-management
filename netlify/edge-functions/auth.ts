@@ -14,7 +14,7 @@ const OIDC_CONFIG = {
 
 // Required groups for awards app access
 const REQUIRED_GROUPS = [
-  'Robotics Faculty',
+  'Robotics Award Committee',
   'robotics-staff'
 ];
 
