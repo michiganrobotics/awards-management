@@ -296,10 +296,22 @@ export default function Dashboard() {
                     <TableHead>Award Name</TableHead>
                     <TableHead>Sponsor</TableHead>
                     <TableHead
-                      className="cursor-pointer hover:bg-muted/50"
+                      className="cursor-pointer hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                       onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+                        }
+                      }}
+                      tabIndex={0}
+                      role="columnheader"
+                      aria-sort={sortOrder === 'asc' ? 'ascending' : 'descending'}
                     >
                       Deadline {sortOrder === 'asc' ? '↑' : '↓'}
+                      <span className="sr-only">
+                        , sortable, currently {sortOrder === 'asc' ? 'ascending' : 'descending'}. Press Enter to toggle.
+                      </span>
                     </TableHead>
                     <TableHead>Amount</TableHead>
                     <TableHead>Priority</TableHead>
