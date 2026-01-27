@@ -11,8 +11,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Save, FileText, Users, CheckCircle, Plus, Trash2, Calendar } from 'lucide-react';
+import { Save, FileText, Users, CheckCircle, Plus, Trash2, Calendar } from 'lucide-react';
 import Link from 'next/link';
+import { Breadcrumbs } from '@/components/breadcrumbs';
 import { FileUpload } from '@/components/file-upload';
 import { toast } from 'sonner';
 import {
@@ -143,11 +144,16 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto p-6 space-y-6">
+        {/* Breadcrumbs */}
+        <Breadcrumbs
+          items={[
+            { label: 'Nominations', href: '/nominations' },
+            { label: `${localNomination.candidateName} - ${award.awardOrPrize}` },
+          ]}
+        />
+
         {/* Header */}
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => router.back()} className="cursor-pointer">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
           <div className="flex-1">
             <h1 className="text-4xl font-bold tracking-tight">{localNomination.candidateName}</h1>
             <p className="text-muted-foreground mt-2">

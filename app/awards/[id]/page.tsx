@@ -11,8 +11,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, ExternalLink, Plus } from 'lucide-react';
+import { ExternalLink, Plus } from 'lucide-react';
 import Link from 'next/link';
+import { Breadcrumbs } from '@/components/breadcrumbs';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useAwards } from '@/hooks/use-awards';
@@ -159,13 +160,16 @@ export default function AwardDetailPage({ params }: { params: Promise<{ id: stri
     <TooltipProvider>
       <div className="min-h-screen bg-background">
         <div className="container mx-auto p-6 space-y-6">
+          {/* Breadcrumbs */}
+          <Breadcrumbs
+            items={[
+              { label: 'Awards', href: '/' },
+              { label: award.awardOrPrize },
+            ]}
+          />
+
           {/* Header */}
           <div className="flex items-center gap-4">
-            <Link href="/" className="cursor-pointer">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-            </Link>
             <div className="flex-1">
               <h1 className="text-4xl font-bold tracking-tight">{award.awardOrPrize}</h1>
               <p className="text-muted-foreground mt-2">{award.sponsor}</p>
