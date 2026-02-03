@@ -248,3 +248,42 @@ export async function makeFilePublic(fileId: string): Promise<void> {
     throw new Error('Failed to make file public');
   }
 }
+
+/**
+ * Download file content from Google Drive
+ * Returns the file content as a Buffer along with file metadata
+ */
+export async function downloadFileContent(fileId: string): Promise<{ buffer: Buffer; name: string; mimeType: string }> {
+  try {
+    // First get file metadata
+    const metadata = await drive.files.get({
+      fileId,
+      fields: 'id, name, mimeType',
+      supportsAllDrives: true,
+    });
+
+    const name = metadata.data.name || 'unnamed';
+    const mimeType = metadata.data.mimeType || 'application/octet-stream';
+
+    // Download file content
+    const response = await drive.files.get(
+      {
+        fileId,
+        alt: 'media',
+        supportsAllDrives: true,
+      },
+      { responseType: 'arraybuffer' }
+    );
+
+    const buffer = Buffer.from(response.data as ArrayBuffer);
+
+    return { buffer, name, mimeType };
+  } catch (error) {
+    const apiError = error as ApiError;
+    logger.error('Error downloading file content', apiError, {
+      fileId,
+      responseStatus: apiError.response?.status,
+    });
+    throw new Error(`Failed to download file: ${apiError.message}`);
+  }
+}

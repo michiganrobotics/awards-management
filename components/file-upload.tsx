@@ -14,7 +14,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Upload, X, FileText, Loader2, ExternalLink } from 'lucide-react';
+import { Upload, X, Loader2, ExternalLink, Download } from 'lucide-react';
 import { NominationFile } from '@/lib/types';
 import { toast } from 'sonner';
 
@@ -26,8 +26,44 @@ interface FileUploadProps {
 
 export function FileUpload({ nominationId, files, onFilesChange }: FileUploadProps) {
   const [uploading, setUploading] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const [category, setCategory] = useState<string>('other');
   const [fileToDelete, setFileToDelete] = useState<string | null>(null);
+
+  const handleDownloadAll = async () => {
+    setDownloading(true);
+    try {
+      const response = await fetch(`/api/files/${nominationId}/download-all`);
+
+      if (!response.ok) {
+        const error = await response.json();
+        toast.error(`Download failed: ${error.error}`);
+        return;
+      }
+
+      // Get the filename from the Content-Disposition header or use a default
+      const contentDisposition = response.headers.get('Content-Disposition');
+      const filenameMatch = contentDisposition?.match(/filename="(.+)"/);
+      const filename = filenameMatch ? filenameMatch[1] : 'files.zip';
+
+      // Create blob and trigger download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast.success('Files downloaded successfully');
+    } catch {
+      toast.error('Failed to download files');
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -191,6 +227,28 @@ export function FileUpload({ nominationId, files, onFilesChange }: FileUploadPro
       {/* Files List */}
       {files.length > 0 ? (
         <div className="space-y-2">
+          <div className="flex justify-end">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownloadAll}
+              disabled={downloading}
+              className="cursor-pointer"
+              aria-label="Download all files as ZIP"
+            >
+              {downloading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+                  Downloading...
+                </>
+              ) : (
+                <>
+                  <Download className="mr-2 h-4 w-4" aria-hidden="true" />
+                  Download All
+                </>
+              )}
+            </Button>
+          </div>
           {files.map((file) => (
             <Card key={file.id}>
               <CardContent className="p-3">
