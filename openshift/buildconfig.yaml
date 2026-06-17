@@ -1,0 +1,31 @@
+# Builds the awards-app image from this Git repo into the internal registry.
+# The repo is public, so no source secret is needed.
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: awards-app
+  namespace: coe-robotics-containers
+  labels: { app: awards-app }
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: awards-app
+  namespace: coe-robotics-containers
+  labels: { app: awards-app }
+spec:
+  source:
+    type: Git
+    git:
+      uri: https://github.com/michiganrobotics/awards-management
+  strategy:
+    type: Docker
+    dockerStrategy: {}        # uses ./Dockerfile at the repo root
+  output:
+    to:
+      kind: ImageStreamTag
+      name: awards-app:latest
+  triggers:
+    - type: ConfigChange
+  # Builds are triggered manually (`oc start-build awards-app`). Add GitHub/
+  # Generic webhook triggers via the console if you want push-to-build.
