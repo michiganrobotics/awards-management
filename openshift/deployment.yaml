@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: awards-app
+  namespace: coe-robotics-containers
+  labels: { app: awards-app }
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: awards-app }
+  template:
+    metadata:
+      labels: { app: awards-app }
+    spec:
+      containers:
+        - name: awards-app
+          # Built by OpenShift "Import from Git" (internal registry) or your registry.
+          image: image-registry.openshift-image-registry.svc:5000/coe-robotics-containers/awards-app:latest
+          ports:
+            - containerPort: 3000
+          env:
+            # Trust the auth-proxy's X-Remote-* headers (it has already
+            # authenticated + group-gated). Safe only because this Service is
+            # ClusterIP-only and the proxy overwrites client-sent X-Remote-*.
+            - name: TRUST_PROXY_AUTH
+              value: "true"
+          envFrom:
+            - secretRef: { name: awards-google }
+          readinessProbe:
+            tcpSocket: { port: 3000 }
+            initialDelaySeconds: 5
+          livenessProbe:
+            tcpSocket: { port: 3000 }
+            initialDelaySeconds: 15
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits:   { cpu: "1",  memory: 512Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: awards-app
+  namespace: coe-robotics-containers
+spec:
+  # ClusterIP only — NOT exposed via a Route. The auth-proxy reaches this at
+  # awards-app.coe-robotics-containers.svc.cluster.local:3000 and is the sole entry point.
+  # Do NOT create a public Route to this Service, or it would bypass auth.
+  selector: { app: awards-app }
+  ports:
+    - port: 3000
+      targetPort: 3000

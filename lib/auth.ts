@@ -26,14 +26,40 @@ export interface AuthUser extends JWTPayload {
   email?: string;
   name?: string;
   sub?: string;
+  groups?: string[];
 }
 
 /**
- * Verify JWT token from cookie - called ONCE per request
- * This avoids the "repeated auth DDoS" issue by caching JWKS
- * and only verifying once per API call
+ * Verify the caller's identity for one request.
+ *
+ * Two trust models, selected by deployment:
+ *  - Behind the OpenShift mod_auth_openidc proxy (TRUST_PROXY_AUTH=true): the
+ *    proxy has already authenticated and group-gated the request, so we trust
+ *    the X-Remote-* headers it injects. This is gated behind an explicit env
+ *    flag so a directly-reachable deployment can never be spoofed by a client
+ *    sending forged X-Remote-* headers.
+ *  - Otherwise (e.g. the Netlify edge-function deployment): verify the
+ *    umich_awards_token JWT cookie against the U-M JWKS.
  */
 export async function verifyAuth(request: NextRequest): Promise<AuthUser | null> {
+  // Proxy-trusted headers
+  if (process.env.TRUST_PROXY_AUTH === 'true') {
+    const remoteUser = request.headers.get('x-remote-user');
+    if (!remoteUser) {
+      return null;
+    }
+    const groups = (request.headers.get('x-remote-groups') || '')
+      .split(',')
+      .map((g) => g.trim())
+      .filter(Boolean);
+    return {
+      sub: remoteUser,
+      email: remoteUser,
+      name: request.headers.get('x-remote-name') || undefined,
+      groups,
+    } as AuthUser;
+  }
+
   try {
     // Get token from cookie
     const token = request.cookies.get('umich_awards_token')?.value;

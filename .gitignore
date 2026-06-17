@@ -55,3 +55,6 @@ __pycache__/
 # Internal development files
 plans/
 progress.txt
+
+# OpenShift deploy secret (real Google credentials) — never commit
+openshift/secret.yaml

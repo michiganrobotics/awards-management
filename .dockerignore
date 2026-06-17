@@ -1,0 +1,14 @@
+node_modules
+.next
+.git
+.github
+netlify
+.netlify
+.env*
+!.env.example
+plans
+progress.txt
+npm-debug.log*
+*.tsbuildinfo
+.DS_Store
+README.md
