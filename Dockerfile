@@ -20,12 +20,15 @@ RUN npm run build
 FROM registry.access.redhat.com/ubi9/nodejs-22:latest AS runner
 WORKDIR /opt/app-root/src
 
-# Patch OS packages to the latest in the UBI repos and drop tools we don't run
-# in production (security: clears OS-package CVEs not relevant to the app).
+# Patch OS packages for security. This cluster mirrors the nodejs base to a
+# Debian image (apt), while a plain pull resolves to UBI (dnf) — so detect the
+# package manager and patch whichever is present. Never fail the build on this.
 USER 0
-RUN dnf -y update && \
-    { dnf remove -y vim-minimal gdb gdb-gdbserver || true; } && \
-    dnf clean all
+RUN if command -v dnf >/dev/null 2>&1; then \
+      dnf -y update && { dnf -y remove vim-minimal gdb gdb-gdbserver || true; } && dnf clean all; \
+    elif command -v apt-get >/dev/null 2>&1; then \
+      apt-get update && apt-get -y upgrade && apt-get -y autoremove --purge && rm -rf /var/lib/apt/lists/*; \
+    fi
 
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
