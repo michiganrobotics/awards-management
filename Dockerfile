@@ -19,6 +19,14 @@ RUN npm run build
 # ---- Runtime ----
 FROM registry.access.redhat.com/ubi9/nodejs-22:latest AS runner
 WORKDIR /opt/app-root/src
+
+# Patch OS packages to the latest in the UBI repos and drop tools we don't run
+# in production (security: clears OS-package CVEs not relevant to the app).
+USER 0
+RUN dnf -y update && \
+    { dnf remove -y vim-minimal gdb gdb-gdbserver || true; } && \
+    dnf clean all
+
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     PORT=3000 \
