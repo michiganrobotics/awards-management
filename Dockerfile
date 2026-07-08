@@ -35,6 +35,13 @@ RUN if command -v apt-get >/dev/null 2>&1; then \
       dnf -y update && dnf clean all; \
     fi
 
+# The standalone Next.js server needs only `node` at runtime. npm, npx,
+# corepack, and yarn ship bundled deps (sigstore, picomatch, brace-expansion)
+# that scanners flag with CVEs we can't otherwise pin — drop them entirely.
+RUN rm -rf /usr/local/lib/node_modules /usr/local/bin/npm /usr/local/bin/npx \
+           /usr/local/bin/corepack /usr/local/bin/yarn /usr/local/bin/yarnpkg \
+           /opt/yarn*
+
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     PORT=3000 \
