@@ -16,6 +16,8 @@ export function StatusBadge({ status, type }: StatusBadgeProps) {
           return 'bg-red-600 text-white hover:bg-red-700';
         case 'ineligible':
           return 'bg-purple-600 text-white hover:bg-purple-700';
+        case 'did_not_apply':
+          return 'bg-gray-500 text-white hover:bg-gray-600';
         case 'submitted':
           return 'bg-blue-600 text-white hover:bg-blue-700';
         case 'pending':

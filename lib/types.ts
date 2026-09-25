@@ -42,7 +42,7 @@ export interface Nomination {
   candidateName: string;
   nominatedBy: string;
   nominationYear: number;
-  status: 'pending' | 'submitted' | 'successful' | 'unsuccessful' | 'ineligible';
+  status: 'pending' | 'submitted' | 'successful' | 'unsuccessful' | 'ineligible' | 'did_not_apply';
   letterStatus: 'not_started' | 'requested' | 'in_progress' | 'completed';
   letterWriterName?: string;
   letterWriterContact?: string;
