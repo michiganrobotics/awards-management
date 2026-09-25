@@ -198,10 +198,12 @@ export default function CandidatesPage() {
                                   ? 'bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200'
                                   : nomination.status === 'ineligible'
                                   ? 'bg-purple-100 text-purple-800 border-purple-300 hover:bg-purple-200'
+                                  : nomination.status === 'did_not_apply'
+                                  ? 'bg-gray-100 text-gray-600 border-gray-300 hover:bg-gray-200'
                                   : ''
                               }
                             >
-                              {nomination.status}
+                              {nomination.status.replace(/_/g, ' ')}
                             </Badge>
                           </div>
                           <div className="text-sm text-muted-foreground mt-1">

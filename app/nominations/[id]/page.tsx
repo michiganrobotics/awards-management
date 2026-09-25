@@ -170,6 +170,7 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
                   successful: 'default',
                   unsuccessful: 'outline',
                   ineligible: 'outline',
+                  did_not_apply: 'outline',
                 };
 
                 let className = '';
@@ -183,9 +184,11 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
                   className = 'bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200';
                 } else if (localNomination.status === 'ineligible') {
                   className = 'bg-purple-100 text-purple-800 border-purple-300 hover:bg-purple-200';
+                } else if (localNomination.status === 'did_not_apply') {
+                  className = 'bg-gray-100 text-gray-600 border-gray-300 hover:bg-gray-200';
                 }
 
-                return <Badge variant={variants[localNomination.status]} className={className}>{localNomination.status}</Badge>;
+                return <Badge variant={variants[localNomination.status]} className={className}>{localNomination.status.replace(/_/g, ' ')}</Badge>;
               })()}
             </div>
           </div>
@@ -273,6 +276,7 @@ export default function NominationDetailPage({ params }: { params: Promise<{ id:
                     <SelectItem value="successful">Successful</SelectItem>
                     <SelectItem value="unsuccessful">Unsuccessful</SelectItem>
                     <SelectItem value="ineligible">Ineligible</SelectItem>
+                    <SelectItem value="did_not_apply">Did Not Apply</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

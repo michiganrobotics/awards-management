@@ -76,6 +76,7 @@ export default function AwardDetailPage({ params }: { params: Promise<{ id: stri
       successful: 'default',
       unsuccessful: 'outline',
       ineligible: 'outline',
+      did_not_apply: 'outline',
     };
 
     let className = '';
@@ -89,9 +90,11 @@ export default function AwardDetailPage({ params }: { params: Promise<{ id: stri
       className = 'bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200';
     } else if (status === 'ineligible') {
       className = 'bg-purple-100 text-purple-800 border-purple-300 hover:bg-purple-200';
+    } else if (status === 'did_not_apply') {
+      className = 'bg-gray-100 text-gray-600 border-gray-300 hover:bg-gray-200';
     }
 
-    return <Badge variant={variants[status]} className={className}>{status}</Badge>;
+    return <Badge variant={variants[status]} className={className}>{status.replace(/_/g, ' ')}</Badge>;
   }, []);
 
   if (loading) {

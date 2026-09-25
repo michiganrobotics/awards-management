@@ -12,7 +12,7 @@ A comprehensive web application for managing academic award nominations, built w
 - **File Management**: Upload and organize nomination documents using Google Drive integration
 - **Support Letters Tracking**: Track multiple support letters per nomination with status indicators
 - **Letter Writing Progress**: Monitor nomination letter progress (not started, requested, in progress, completed)
-- **Status Workflow**: Track nominations through their lifecycle (pending, submitted, successful, unsuccessful)
+- **Status Workflow**: Track nominations through their lifecycle (pending, submitted, successful, unsuccessful, ineligible, did not apply)
 
 ### Additional Capabilities
 - **Real-time Statistics**: Dashboard showing total nominations, pending, submitted, and successful counts
@@ -206,7 +206,7 @@ For each nomination, you can:
 - Track nomination letter status (not started, in progress, completed)
 - Track support letters status (not started, requested, received)
 - Add notes and links to nomination package files
-- Update overall nomination status (pending, submitted, successful, unsuccessful)
+- Update overall nomination status (pending, submitted, successful, unsuccessful, ineligible, did not apply)
 
 ### Deadlines View
 
@@ -259,7 +259,7 @@ The Nominations sheet is automatically created when you add your first nominatio
 - `nominationYear` - Year of nomination (e.g., 2025)
 
 **Status Tracking:**
-- `status` - Overall status: `pending`, `submitted`, `successful`, or `unsuccessful`
+- `status` - Overall status: `pending`, `submitted`, `successful`, `unsuccessful`, `ineligible`, or `did_not_apply`
 - `letterStatus` - Nomination letter status: `not_started`, `requested`, `in_progress`, or `completed`
 - `supportLettersStatus` - Support letters status: `not_started`, `requested`, or `received`
 
@@ -318,7 +318,7 @@ interface Nomination {
   candidateName: string;
   nominatedBy: string;
   nominationYear: number;
-  status: 'pending' | 'submitted' | 'successful' | 'unsuccessful';
+  status: 'pending' | 'submitted' | 'successful' | 'unsuccessful' | 'ineligible' | 'did_not_apply';
   letterStatus: 'not_started' | 'requested' | 'in_progress' | 'completed';
   supportLettersStatus: 'not_started' | 'requested' | 'received';
   driveFolderId?: string;
