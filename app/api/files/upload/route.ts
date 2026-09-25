@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { uploadFile, createFolder } from '@/lib/google-drive';
-import { getNominations, updateNomination, getAwards } from '@/lib/google-sheets';
+import { uploadNominationFile, NominationNotFoundError } from '@/lib/nomination-files';
 import { withAuth } from '@/lib/api-utils';
 import { VALIDATION_LIMITS, FILE_CATEGORY } from '@/lib/constants';
 import type { ApiError } from '@/lib/types';
@@ -52,49 +51,21 @@ export const POST = withAuth(async (request: NextRequest) => {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Get nomination and award
-    const [nominations, awards] = await Promise.all([
-      getNominations(),
-      getAwards(),
-    ]);
-    const nomination = nominations.find((n) => n.id === nominationId);
-
-    if (!nomination) {
-      return NextResponse.json({ error: 'Nomination not found' }, { status: 404 });
+    let uploadedFile;
+    try {
+      uploadedFile = await uploadNominationFile({
+        nominationId,
+        fileName: file.name,
+        mimeType: file.type,
+        buffer,
+        category,
+      });
+    } catch (error) {
+      if (error instanceof NominationNotFoundError) {
+        return NextResponse.json({ error: 'Nomination not found' }, { status: 404 });
+      }
+      throw error;
     }
-
-    const award = awards.find((a) => a.id === nomination.awardId);
-    const awardName = award?.awardOrPrize || 'Unknown Award';
-
-    // Create folder for nomination if it doesn't exist
-    let folderId = nomination.driveFolderId;
-    if (!folderId) {
-      const folderName = `${nomination.candidateName} - ${nomination.nominationYear} - ${awardName}`;
-      logger.debug('Attempting to create folder', { folderName });
-      folderId = await createFolder(folderName);
-      logger.debug('Folder created successfully', { folderId });
-
-      // Update nomination with folder ID
-      await updateNomination(nominationId, { driveFolderId: folderId });
-    }
-
-    // Sanitize filename to prevent path traversal and malicious characters
-    const sanitizedName = file.name
-      .replace(/[<>:"/\\|?*\x00-\x1F]/g, '_')  // Remove dangerous characters
-      .replace(/^\.+/, '')  // Remove leading dots
-      .replace(/\.{2,}/g, '.')  // Collapse multiple dots to single dot
-      .replace(/^_+|_+$/g, '')  // Remove leading/trailing underscores
-      .substring(0, 255);  // Limit filename length
-
-    // Append category to filename
-    const fileExtension = sanitizedName.includes('.') ? sanitizedName.substring(sanitizedName.lastIndexOf('.')) : '';
-    const baseName = sanitizedName.includes('.') ? sanitizedName.substring(0, sanitizedName.lastIndexOf('.')) : sanitizedName;
-    const categoryTag = category ? `[${category}]` : '';
-    const newFileName = `${baseName}${categoryTag}${fileExtension}`;
-
-    // Upload file to the nomination's folder
-    logger.debug('Uploading file to folder', { folderId, fileName: newFileName });
-    const uploadedFile = await uploadFile(newFileName, file.type, buffer, folderId);
 
     return NextResponse.json({
       success: true,

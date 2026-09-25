@@ -216,6 +216,22 @@ View all deadlines in one place:
 - Filter upcoming deadlines
 - Quick links to awards and nominations
 
+### Managing Nominations with Claude Code
+
+You can ask Claude Code to add or update nominations for you, e.g. *"add a
+nomination for Jane Doe for the IEEE Fellow award, here's the draft letter,
+Ann Smith and Bo Lee are writing support letters"*.
+
+1. Clone this repo and run `npm install`.
+2. Put the app's Google credentials in `.env.local` (see `.env.example`; ask the
+   app maintainer for the values).
+3. Open Claude Code in the repo and ask. It follows
+   `.claude/skills/nominations/SKILL.md`, which uses the
+   `npm run nominations` CLI (`scripts/nominations.ts`) with the app's own
+   validation, and previews each change for your OK before writing it.
+
+You can also run the CLI yourself: `npm run nominations -- help`.
+
 ## Data Structure
 
 The application uses two main Google Sheets to store all data:
