@@ -9,6 +9,7 @@
 import { existsSync, readFileSync } from 'fs';
 import { basename, extname } from 'path';
 import { ZodError } from 'zod';
+import type { NominationInputError } from '../lib/nomination-service';
 
 // Load credentials before importing the Google modules, which read env at load time.
 for (const file of ['.env.local', '.env']) {
@@ -98,10 +99,6 @@ const MIME_TYPES: Record<string, string> = {
   '.jpeg': 'image/jpeg',
 };
 
-function normalize(text: string): string {
-  return text.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
-}
-
 async function main() {
   const [command, ...rest] = process.argv.slice(2);
   const { positional, flags } = parseArgs(rest);
@@ -118,55 +115,23 @@ async function main() {
     }
   }
 
-  const sheets = await import('../lib/google-sheets');
-  const { validateCreateNomination, validateNominationUpdate } = await import('../lib/validation');
-
-  const awardSummary = (award: Awaited<ReturnType<typeof sheets.getAwards>>[number]) => ({
-    id: award.id,
-    name: award.awardOrPrize,
-    sponsor: award.sponsor,
-    deadline: award.deadlineMonth,
-    careerLevel: award.academicCareerLevel,
-    link: award.link,
-  });
+  const service = await import('../lib/nomination-service');
 
   switch (command) {
     case 'awards': {
-      const awards = await sheets.getAwards();
-      const words = normalize(positional.join(' ')).split(' ').filter(Boolean);
-      const matches = awards.filter((award) => {
-        const haystack = normalize(`${award.awardOrPrize} ${award.sponsor}`);
-        return words.every((word) => haystack.includes(word));
-      });
-      print(matches.map(awardSummary));
+      print(await service.searchAwards(positional.join(' ')));
       return;
     }
 
     case 'list': {
-      const [nominations, awards] = await Promise.all([sheets.getNominations(), sheets.getAwards()]);
-      const awardId = flag(flags, 'award');
-      const candidate = flag(flags, 'candidate');
       const year = flag(flags, 'year');
-      const status = flag(flags, 'status');
-      const matches = nominations.filter(
-        (n) =>
-          (!awardId || n.awardId === awardId) &&
-          (!candidate || normalize(n.candidateName).includes(normalize(candidate))) &&
-          (!year || n.nominationYear === Number(year)) &&
-          (!status || n.status === status)
-      );
       print(
-        matches.map((n) => ({
-          id: n.id,
-          candidateName: n.candidateName,
-          award: awards.find((a) => a.id === n.awardId)?.awardOrPrize || `(unknown award ${n.awardId})`,
-          awardId: n.awardId,
-          nominationYear: n.nominationYear,
-          status: n.status,
-          letterStatus: n.letterStatus,
-          supportLettersStatus: n.supportLettersStatus,
-          deadlineDate: n.deadlineDate,
-        }))
+        await service.listNominations({
+          awardId: flag(flags, 'award'),
+          candidate: flag(flags, 'candidate'),
+          year: year ? Number(year) : undefined,
+          status: flag(flags, 'status'),
+        })
       );
       return;
     }
@@ -174,87 +139,20 @@ async function main() {
     case 'get': {
       const id = positional[0];
       if (!id) fail('Usage: get <nominationId>');
-      const nomination = await sheets.getNominationById(id);
-      if (!nomination) fail(`Nomination not found: ${id}`);
-      const award = await sheets.getAwardById(nomination.awardId);
-      let files: unknown[] = [];
-      if (nomination.driveFolderId) {
-        const { listFiles } = await import('../lib/google-drive');
-        files = (await listFiles(nomination.driveFolderId)).map((f) => ({
-          name: f.name,
-          link: f.webViewLink,
-          createdTime: f.createdTime,
-        }));
-      }
-      print({ nomination, award: award ? awardSummary(award) : null, files });
+      print(await service.getNominationDetails(id));
       return;
     }
 
     case 'add': {
-      const input = readJsonInput(positional[0]) as Record<string, unknown>;
-      if (Array.isArray(input.supportLetters) && input.supportLettersCount === undefined) {
-        input.supportLettersCount = input.supportLetters.length;
-      }
-      const data = validateCreateNomination(input);
-
-      const award = await sheets.getAwardById(data.awardId);
-      if (!award) {
-        fail(`No award with id ${data.awardId}. Find the right id with: npm run nominations -- awards <search>`);
-      }
-
-      const existing = (await sheets.getNominations()).filter(
-        (n) =>
-          n.awardId === data.awardId &&
-          n.nominationYear === data.nominationYear &&
-          normalize(n.candidateName) === normalize(data.candidateName)
-      );
-      if (existing.length > 0 && flags.force !== true) {
-        fail('A nomination for this candidate, award and year already exists. Use update, or pass --force.', {
-          existing: existing.map((n) => n.id),
-        });
-      }
-
-      // Awards without an awardId in the sheet get a row-number id, which breaks if rows move.
-      const warning = data.awardId.startsWith('award-row-')
-        ? 'This award has no awardId in the Awards sheet, so the link will break if rows are reordered. Ask an admin to fill in its awardId.'
-        : undefined;
-
-      if (dryRun) {
-        print({ dryRun: true, wouldCreate: data, award: awardSummary(award), warning });
-        return;
-      }
-      const created = await sheets.addNomination(data);
-      print({ created, award: awardSummary(award), warning });
+      const input = readJsonInput(positional[0]);
+      print(await service.createNomination(input, { dryRun, force: flags.force === true }));
       return;
     }
 
     case 'update': {
       const [id, source] = positional;
       if (!id) fail('Usage: update <nominationId> <json-file | ->');
-      const input = readJsonInput(source) as Record<string, unknown>;
-      if (Array.isArray(input.supportLetters) && input.supportLettersCount === undefined) {
-        input.supportLettersCount = input.supportLetters.length;
-      }
-      const updates = validateNominationUpdate(input);
-      if ('awardId' in updates) {
-        fail('awardId cannot be changed. Create a new nomination for the other award instead.');
-      }
-
-      const current = await sheets.getNominationById(id);
-      if (!current) fail(`Nomination not found: ${id}`);
-
-      if (dryRun) {
-        const changes = Object.fromEntries(
-          Object.entries(updates).map(([key, value]) => [
-            key,
-            { from: current[key as keyof typeof current], to: value },
-          ])
-        );
-        print({ dryRun: true, id, changes });
-        return;
-      }
-      const updated = await sheets.updateNomination(id, updates);
-      print({ updated });
+      print(await service.updateNominationFields(id, readJsonInput(source), { dryRun }));
       return;
     }
 
@@ -274,7 +172,8 @@ async function main() {
         fail(`File is larger than ${VALIDATION_LIMITS.MAX_FILE_SIZE / 1024 / 1024}MB`);
       }
 
-      const nomination = await sheets.getNominationById(id);
+      const { getNominationById } = await import('../lib/google-sheets');
+      const nomination = await getNominationById(id);
       if (!nomination) fail(`Nomination not found: ${id}`);
 
       const fileName = basename(path);
@@ -307,6 +206,11 @@ async function main() {
 }
 
 main().catch((error) => {
+  // Checked by name: a static import of nomination-service would load the Google
+  // modules before .env.local is read.
+  if ((error as Error)?.name === 'NominationInputError') {
+    fail(error.message, (error as NominationInputError).details);
+  }
   if (error instanceof ZodError) {
     fail('Validation failed', error.issues.map((i) => ({ field: i.path.join('.'), message: i.message })));
   }

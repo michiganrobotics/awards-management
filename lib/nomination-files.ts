@@ -2,6 +2,8 @@ import { uploadFile, createFolder, DriveFile } from './google-drive';
 import { getNominations, updateNomination, getAwards } from './google-sheets';
 import { logger } from './logger';
 
+export const GOOGLE_DOC_MIME_TYPE = 'application/vnd.google-apps.document';
+
 export class NominationNotFoundError extends Error {
   constructor(nominationId: string) {
     super(`Nomination not found: ${nominationId}`);
@@ -38,8 +40,10 @@ export async function uploadNominationFile(params: {
   mimeType: string;
   buffer: Buffer;
   category?: string;
+  /** Import into Drive as this Google file type, e.g. GOOGLE_DOC_MIME_TYPE */
+  convertTo?: string;
 }): Promise<DriveFile> {
-  const { nominationId, fileName, mimeType, buffer, category } = params;
+  const { nominationId, fileName, mimeType, buffer, category, convertTo } = params;
 
   // Get nomination and award
   const [nominations, awards] = await Promise.all([
@@ -71,5 +75,5 @@ export async function uploadNominationFile(params: {
 
   // Upload file to the nomination's folder
   logger.debug('Uploading file to folder', { folderId, fileName: newFileName });
-  return uploadFile(newFileName, mimeType, buffer, folderId);
+  return uploadFile(newFileName, mimeType, buffer, folderId, convertTo);
 }

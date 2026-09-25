@@ -14,7 +14,7 @@
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
-export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'audit';
 
 interface LogContext {
   [key: string]: unknown;
@@ -53,6 +53,13 @@ export const logger = {
    */
   warn(message: string, context?: LogContext): void {
     console.warn(formatMessage('warn', message, context));
+  },
+
+  /**
+   * Audit trail for changes made on someone's behalf (e.g. via Claude) - always enabled
+   */
+  audit(message: string, context?: LogContext): void {
+    console.info(formatMessage('audit', message, context));
   },
 
   /**

@@ -216,21 +216,36 @@ View all deadlines in one place:
 - Filter upcoming deadlines
 - Quick links to awards and nominations
 
-### Managing Nominations with Claude Code
+### Using Claude to Manage Nominations
 
-You can ask Claude Code to add or update nominations for you, e.g. *"add a
-nomination for Jane Doe for the IEEE Fellow award, here's the draft letter,
-Ann Smith and Bo Lee are writing support letters"*.
+Anyone on the award committee can connect their Claude to the app and ask
+things like *"add a nomination for Jane Doe for the IEEE Fellow award, here's
+the draft letter, Ann Smith and Bo Lee are writing support letters"*.
 
-1. Clone this repo and run `npm install`.
-2. Put the app's Google credentials in `.env.local` (see `.env.example`; ask the
-   app maintainer for the values).
-3. Open Claude Code in the repo and ask. It follows
-   `.claude/skills/nominations/SKILL.md`, which uses the
-   `npm run nominations` CLI (`scripts/nominations.ts`) with the app's own
-   validation, and previews each change for your OK before writing it.
+**Connect (claude.ai, Claude Desktop, mobile):** Settings → Connectors → Add
+custom connector → URL `https://awards.robotics.umich.edu/mcp`. Claude opens a
+U-M sign-in and a consent page; click **Allow**. Changes are made as you and
+logged with your U-M email.
 
-You can also run the CLI yourself: `npm run nominations -- help`.
+**Claude Code:** `claude mcp add --transport http awards https://awards.robotics.umich.edu/mcp`,
+then run `/mcp` to sign in.
+
+What it can do: search awards; list and read nominations; create and update
+nominations (Claude previews and asks before creating); save a draft letter as
+a Google Doc in the nomination's Drive folder. It can't delete anything, and
+it can't upload an attachment's original file from chat — upload PDFs/DOCX in
+the web app.
+
+How it works: `app/mcp` is a remote MCP server (tools in `lib/mcp-server.ts`).
+The app is its own OAuth server (`app/oauth`, `lib/mcp-auth.ts`): the consent
+page sits behind the U-M auth proxy like every other page, while `/mcp`, the
+token/registration endpoints and the `/.well-known/oauth-*` documents are let
+through the proxy and require the app's own Bearer tokens. Needs
+`MCP_TOKEN_SECRET` and `APP_BASE_URL` (see `openshift/secret.example.yaml`).
+
+**From a clone of the repo** there's also a CLI with the same operations,
+using the app's Google credentials in `.env.local`: `npm run nominations -- help`
+(`scripts/nominations.ts`; Claude Code follows `.claude/skills/nominations/SKILL.md`).
 
 ## Data Structure
 

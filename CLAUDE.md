@@ -7,8 +7,12 @@ and `lib/google-drive.ts`.
 ## Adding or updating nominations
 
 When asked to add, find, or update a nomination (support letter writers,
-status, uploading a draft letter, etc.), follow `.claude/skills/nominations/SKILL.md`
-and use `npm run nominations`. Don't edit the Google Sheet directly.
+status, uploading a draft letter, etc.): use the `awards` MCP connector's tools
+if connected, otherwise follow `.claude/skills/nominations/SKILL.md` and use
+`npm run nominations`. Don't edit the Google Sheet directly.
+
+The Claude connector lives in `app/mcp` + `app/oauth` (`lib/mcp-server.ts`,
+`lib/mcp-auth.ts`); both it and the CLI go through `lib/nomination-service.ts`.
 
 ## Development
 

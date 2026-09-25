@@ -29,13 +29,15 @@ export interface DriveFile {
 }
 
 /**
- * Upload a file to Google Drive
+ * Upload a file to Google Drive. Pass `convertTo` (e.g. the Google Docs mime
+ * type) to have Drive import the file as a native Google file.
  */
 export async function uploadFile(
   fileName: string,
   mimeType: string,
   buffer: Buffer,
-  folderId?: string
+  folderId?: string,
+  convertTo?: string
 ): Promise<DriveFile> {
   try {
     const targetFolderId = folderId || FOLDER_ID;
@@ -46,6 +48,7 @@ export async function uploadFile(
     const fileMetadata: GoogleDriveFileMetadata = {
       name: fileName,
       parents: [targetFolderId],
+      ...(convertTo ? { mimeType: convertTo } : {}),
     };
 
     // Convert buffer to stream
